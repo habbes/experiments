@@ -65,7 +65,7 @@ Anyway, from the results above, we clearly see that the JsonSerializer is around
 
 It is expected that for a single request, `WriteODataSync` should perform better than `WriteOData` due to the extra async overhead in the async writers.
 
-### Http Servers
+### Comparing Http Server response times
 
 To compare the response time of http requests based on the different serializers, go to the `Main` method of the main project and uncomment the `TestServers()` statement and comment out the remaining statements in the method. Then run the application (preferrably in Release mode).
 
@@ -82,4 +82,8 @@ Here are sample response times observed on my machine:
 
 ![Sample Response Times](./SampleServerResponseTimes.png)
 
-The JsonSerializer server about 10x faster than the synchronous OData server and at least 25x faster than the async OData server (not the that the `JsonSerializer` is also async).
+The JsonSerializer server about 10x faster than the synchronous OData server and at least 25x faster than the async OData server.
+
+Note that comparing response times of single request gives us insights into the latency, but not scalability/throughput. It's expected that async will may result in slower response times for individual requests but improve overall scalability. However in this case, the JsonSerializer is also async (using the `SerializeAsync` method), so I believe this is a fair comparison and could also translate to throughput.
+
+### CPU Profiling

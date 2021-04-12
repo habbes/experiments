@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>ODataWriterVsSystemTextJson.Benchmarks-20210412-110443</title>
+<title>ODataWriterVsSystemTextJson.Benchmarks-20210412-114430</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -18,20 +18,32 @@ Intel Core i7-8665U CPU 1.90GHz (Coffee Lake), 1 CPU, 8 logical and 4 physical c
 .NET Core SDK=5.0.201
   [Host]     : .NET Core 3.1.13 (CoreCLR 4.700.21.11102, CoreFX 4.700.21.11602), X64 RyuJIT
   DefaultJob : .NET Core 3.1.13 (CoreCLR 4.700.21.11102, CoreFX 4.700.21.11602), X64 RyuJIT
-  Job-GWQEDZ : .NET Core 3.1.13 (CoreCLR 4.700.21.11102, CoreFX 4.700.21.11602), X64 RyuJIT
+  Job-ALWPOM : .NET Core 3.1.13 (CoreCLR 4.700.21.11102, CoreFX 4.700.21.11602), X64 RyuJIT
 </code></pre>
 <pre><code>InvocationCount=1  
 </code></pre>
 
 <table>
-<thead><tr><th>      Method</th><th> Job</th><th>UnrollFactor</th><th>dataSize</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+<thead><tr><th>      Method</th><th> Job</th><th>UnrollFactor</th><th>dataSize</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Ratio</th><th>RatioSD</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>WriteJson</td><td>DefaultJob</td><td>16</td><td>5000</td><td>9.900 ms</td><td>0.1920 ms</td><td>0.2692 ms</td><td>1.00</td><td>0.00</td><td>859.3750</td><td>750.0000</td><td>750.0000</td><td>4068.88 KB</td>
-</tr><tr><td>WriteOData</td><td>DefaultJob</td><td>16</td><td>5000</td><td>251.552 ms</td><td>4.1174 ms</td><td>3.8514 ms</td><td>25.15</td><td>0.66</td><td>28000.0000</td><td>1000.0000</td><td>-</td><td>121964.45 KB</td>
-</tr><tr><td>WriteODataSync</td><td>DefaultJob</td><td>16</td><td>5000</td><td>207.125 ms</td><td>3.9800 ms</td><td>3.5282 ms</td><td>20.70</td><td>0.67</td><td>24000.0000</td><td>-</td><td>-</td><td>104437.29 KB</td>
-</tr><tr><td>WriteJsonFile</td><td>Job-GWQEDZ</td><td>1</td><td>5000</td><td>15.596 ms</td><td>0.7763 ms</td><td>2.2023 ms</td><td>?</td><td>?</td><td>-</td><td>-</td><td>-</td><td>410.66 KB</td>
-</tr><tr><td>WriteODataFile</td><td>Job-GWQEDZ</td><td>1</td><td>5000</td><td>313.366 ms</td><td>12.2269 ms</td><td>35.8595 ms</td><td>?</td><td>?</td><td>28000.0000</td><td>1000.0000</td><td>-</td><td>119509.02 KB</td>
-</tr><tr><td>WriteODataSyncFile</td><td>Job-GWQEDZ</td><td>1</td><td>5000</td><td>274.697 ms</td><td>7.5745 ms</td><td>22.0951 ms</td><td>?</td><td>?</td><td>24000.0000</td><td>1000.0000</td><td>-</td><td>100345.96 KB</td>
+</thead><tbody><tr><td>WriteJson</td><td>DefaultJob</td><td>16</td><td>1000</td><td>2.216 ms</td><td>0.0438 ms</td><td>0.1083 ms</td><td>2.226 ms</td><td>1.00</td><td>0.00</td><td>109.3750</td><td>109.3750</td><td>109.3750</td><td>525.52 KB</td>
+</tr><tr><td>WriteOData</td><td>DefaultJob</td><td>16</td><td>1000</td><td>48.498 ms</td><td>0.8994 ms</td><td>0.7973 ms</td><td>48.536 ms</td><td>21.77</td><td>0.78</td><td>5800.0000</td><td>600.0000</td><td>100.0000</td><td>24490.25 KB</td>
+</tr><tr><td>WriteODataSync</td><td>DefaultJob</td><td>16</td><td>1000</td><td>46.318 ms</td><td>0.9217 ms</td><td>2.2083 ms</td><td>46.728 ms</td><td>20.98</td><td>1.51</td><td>4916.6667</td><td>166.6667</td><td>83.3333</td><td>20595.88 KB</td>
+</tr><tr><td>WriteJsonFile</td><td>Job-ALWPOM</td><td>1</td><td>1000</td><td>4.714 ms</td><td>0.4615 ms</td><td>1.3608 ms</td><td>4.494 ms</td><td>?</td><td>?</td><td>-</td><td>-</td><td>-</td><td>82.03 KB</td>
+</tr><tr><td>WriteODataFile</td><td>Job-ALWPOM</td><td>1</td><td>1000</td><td>77.616 ms</td><td>4.4283 ms</td><td>12.9174 ms</td><td>74.778 ms</td><td>?</td><td>?</td><td>5000.0000</td><td>-</td><td>-</td><td>23937.82 KB</td>
+</tr><tr><td>WriteODataSyncFile</td><td>Job-ALWPOM</td><td>1</td><td>1000</td><td>59.196 ms</td><td>2.1655 ms</td><td>6.2480 ms</td><td>59.534 ms</td><td>?</td><td>?</td><td>4000.0000</td><td>1000.0000</td><td>-</td><td>20088.62 KB</td>
+</tr><tr><td>WriteJson</td><td>DefaultJob</td><td>16</td><td>5000</td><td>10.233 ms</td><td>0.2015 ms</td><td>0.4669 ms</td><td>10.149 ms</td><td>1.00</td><td>0.00</td><td>859.3750</td><td>750.0000</td><td>750.0000</td><td>4069.07 KB</td>
+</tr><tr><td>WriteOData</td><td>DefaultJob</td><td>16</td><td>5000</td><td>256.767 ms</td><td>5.0765 ms</td><td>6.4201 ms</td><td>257.386 ms</td><td>24.09</td><td>1.05</td><td>28000.0000</td><td>1000.0000</td><td>-</td><td>121955.38 KB</td>
+</tr><tr><td>WriteODataSync</td><td>DefaultJob</td><td>16</td><td>5000</td><td>213.545 ms</td><td>2.9602 ms</td><td>2.6241 ms</td><td>213.073 ms</td><td>19.68</td><td>0.50</td><td>24000.0000</td><td>-</td><td>-</td><td>104437.29 KB</td>
+</tr><tr><td>WriteJsonFile</td><td>Job-ALWPOM</td><td>1</td><td>5000</td><td>15.530 ms</td><td>0.8640 ms</td><td>2.5341 ms</td><td>14.657 ms</td><td>?</td><td>?</td><td>-</td><td>-</td><td>-</td><td>410.66 KB</td>
+</tr><tr><td>WriteODataFile</td><td>Job-ALWPOM</td><td>1</td><td>5000</td><td>381.408 ms</td><td>22.3187 ms</td><td>64.0366 ms</td><td>375.551 ms</td><td>?</td><td>?</td><td>28000.0000</td><td>1000.0000</td><td>-</td><td>119509.02 KB</td>
+</tr><tr><td>WriteODataSyncFile</td><td>Job-ALWPOM</td><td>1</td><td>5000</td><td>305.688 ms</td><td>13.4479 ms</td><td>39.6513 ms</td><td>310.898 ms</td><td>?</td><td>?</td><td>24000.0000</td><td>1000.0000</td><td>-</td><td>100345.96 KB</td>
+</tr><tr><td>WriteJson</td><td>DefaultJob</td><td>16</td><td>10000</td><td>28.462 ms</td><td>1.1779 ms</td><td>3.4732 ms</td><td>27.729 ms</td><td>1.00</td><td>0.00</td><td>933.3333</td><td>733.3333</td><td>733.3333</td><td>8148.17 KB</td>
+</tr><tr><td>WriteOData</td><td>DefaultJob</td><td>16</td><td>10000</td><td>650.525 ms</td><td>43.6424 ms</td><td>127.9955 ms</td><td>654.938 ms</td><td>22.96</td><td>4.42</td><td>55000.0000</td><td>2000.0000</td><td>-</td><td>243963.89 KB</td>
+</tr><tr><td>WriteODataSync</td><td>DefaultJob</td><td>16</td><td>10000</td><td>403.258 ms</td><td>3.0451 ms</td><td>2.6994 ms</td><td>403.134 ms</td><td>15.50</td><td>1.39</td><td>49000.0000</td><td>-</td><td>-</td><td>208894.81 KB</td>
+</tr><tr><td>WriteJsonFile</td><td>Job-ALWPOM</td><td>1</td><td>10000</td><td>30.658 ms</td><td>1.5611 ms</td><td>4.6029 ms</td><td>29.500 ms</td><td>?</td><td>?</td><td>-</td><td>-</td><td>-</td><td>816.33 KB</td>
+</tr><tr><td>WriteODataFile</td><td>Job-ALWPOM</td><td>1</td><td>10000</td><td>706.049 ms</td><td>33.9680 ms</td><td>94.6891 ms</td><td>688.989 ms</td><td>?</td><td>?</td><td>55000.0000</td><td>2000.0000</td><td>-</td><td>238992.23 KB</td>
+</tr><tr><td>WriteODataSyncFile</td><td>Job-ALWPOM</td><td>1</td><td>10000</td><td>693.653 ms</td><td>61.0559 ms</td><td>178.1029 ms</td><td>636.849 ms</td><td>?</td><td>?</td><td>49000.0000</td><td>1000.0000</td><td>-</td><td>200667.64 KB</td>
 </tr></tbody></table>
 </body>
 </html>
