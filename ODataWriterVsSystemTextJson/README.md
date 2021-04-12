@@ -102,7 +102,7 @@ I used the Visual Studio performance profile to drill down and try and find what
 
 The following graph shows CPU usage during requests against the 3 servers. The tiny bump on the left is a request to the JsonSerializer server, the large bump in the middle is a request to the async OData server and the bump on the right is a request to synchronous OData server.
 
-![Servers CPU Graph](./ServerCpuGraphs.png)
+![Servers CPU Graph](./ServerCPUGraphs.png)
 
 The JsonSerializer server took 21ms to complete the request. 18ms (85.71%) were spent in `JsonSerializer.WriteAsyncCore()`. 11ms (52.38%) are spent in `JsonSerializer.WriteCore()` and only 4ms (19.05%) are actually spent writing to underlying network stream (`Stream.WriteAsync()`). We also see that the majority of the stream writing, 3ms (14.29%) is spent the strange `dynamicClass.IL_STUB_PInvoke` method. Using ILSpy, I found that this a [stub defined in `Interop.HttpApi`](https://source.dot.net/#Microsoft.AspNetCore.Server.HttpSys/NativeInterop/HttpApi.cs,36) as:
 ```c#
