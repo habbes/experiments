@@ -1,5 +1,15 @@
 # ODataWriter vs System.Text.Json performance
 
+- [Overview](#overview)
+- [Project Setup](#project-setup)
+- [Running Experiments](#running-experiments)
+  * [Benchmarks](#benchmarks)
+  * [Comparing Http Server Response Times](#comparing-http-server-response-times)
+  * [CPU Profiling](#cpu-profiling)
+- [Conclusions](#conclusions)
+
+## Overview
+
 This experiment compares the performance differences between `JsonSerializer` (`System.Text.Json`) and `ODataWriter`. It's a follow up to [this issue](https://github.com/OData/WebApi/issues/2444)
 
 The experiments are based on serializing a collection of [Customer](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/DataModel.cs) entities.
@@ -87,3 +97,9 @@ The JsonSerializer server about 10x faster than the synchronous OData server and
 Note that comparing response times of single request gives us insights into the latency, but not scalability/throughput. It's expected that async will may result in slower response times for individual requests but improve overall scalability. However in this case, the JsonSerializer is also async (using the `SerializeAsync` method), so I believe this is a fair comparison and could also translate to throughput.
 
 ### CPU Profiling
+
+TODO
+
+## Conclusions
+
+TODO
