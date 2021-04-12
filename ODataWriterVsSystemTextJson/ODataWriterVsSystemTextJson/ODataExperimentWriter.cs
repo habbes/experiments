@@ -133,7 +133,6 @@ namespace ODataWriterVsSystemTextJson
                 await writer.WriteEndAsync();
                 //Console.WriteLine("Finish writing resource {0}", customer.Id);
                 //Console.WriteLine("Finised customer {0}", customer.Id);
-                //await stream.FlushAsync();
             }
             await writer.WriteEndAsync();
         }

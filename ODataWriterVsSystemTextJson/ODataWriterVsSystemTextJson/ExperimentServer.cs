@@ -62,9 +62,9 @@ namespace ODataWriterVsSystemTextJson
                     HttpListenerRequest req = ctx.Request;
                     HttpListenerResponse resp = ctx.Response;
                     Console.WriteLine("Request received: {0}", req.Url.ToString());
-                    var sw = new Stopwatch();
+
                     IEnumerable<Customer> responseData = null;
-                    sw.Start();
+                    
                     resp.ContentType = "application/json";
 
                     // allow use to specify data size with ?count=<count> query param
@@ -80,6 +80,8 @@ namespace ODataWriterVsSystemTextJson
                     }
 
                     responseData ??= _data;
+                    var sw = new Stopwatch();
+                    sw.Start();
                     await _writer.WriteCustomers(responseData, resp.OutputStream);
                     resp.Close();
                     sw.Stop();
