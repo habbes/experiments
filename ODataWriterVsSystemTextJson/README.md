@@ -1,0 +1,1 @@
+# ODataWriter vs System.Text.Json performance
