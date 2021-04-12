@@ -84,7 +84,7 @@ This will launch three local servers:
 - async ODataWriter server on `http://localhost:8081`
 - synchronous ODataWriter server on `http://localhost:8082`
 
-All the servers work exactly the same way, they only differ on the serializer used to write the response. By default, the server will send as a response a JSON collection of 5000 Customer entities. It also logs the response time on the console (**Note**: the response time is actually the time taken to write the response, it doesn't include the time taken to generate the data.). You can request a different data size by adding a `count` query option (e.g. `http://localhost:8080?count=10000`)
+All the servers work exactly the same way, they only differ on the serializer used to write the response (see [ExperimentServer](ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/ExperimentServer.cs)). By default, the server will send as a response a JSON collection of 5000 Customer entities. It also logs the response time on the console (**Note**: the response time is actually the time taken to write the response, it doesn't include the time taken to generate the data.). You can request a different data size by adding a `count` query option (e.g. `http://localhost:8080?count=10000`)
 
 The first couple of requests take a bit of time (probably some warmup activities taking place). So you should make a couple of requests to each of the endpoints until the response times converge before you start comparing them.
 
@@ -98,8 +98,28 @@ Note that comparing response times of single request gives us insights into the 
 
 ### CPU Profiling
 
-TODO
+I used the Visual Studio performance profile to drill down and try and find what the sources of the bottlenecks are. I used the profile to collect performance metrics on the 3 servers. I let the servers "warm up" by making a bunch of requests until the response times converged. The profiler session I used in the following analysis can be found in [SystemJsonVsODataWriterAsyncVsODataWriterSync.diagsession](SystemJsonVsODataWriterAsyncVsODataWriterSync.diagsession)
+
+The following graph shows CPU usage during requests against the 3 servers. The tiny bump on the left is a request to the JsonSerializer server, the large bump in the middle is a request to the async OData server and the bump on the right is a request to synchronous OData server.
+
+![Servers CPU Graph](./ServerCpuGraphs.png)
+
+The JsonSerializer server took 21ms to complete the request. 18ms (85.71%) were spent in `JsonSerializer.WriteAsyncCore()`. 11ms (52.38%) are spent in `JsonSerializer.WriteCore()` and only 4ms (19.05%) are actually spent writing to underlying network stream (`Stream.WriteAsync()`). We also see that the majority of the stream writing, 3ms (14.29%) is spent the strange `dynamicClass.IL_STUB_PInvoke` method. Using ILSpy, I found that this a [stub defined in `Interop.HttpApi`](https://source.dot.net/#Microsoft.AspNetCore.Server.HttpSys/NativeInterop/HttpApi.cs,36) as:
+```c#
+[DllImport("httpapi.dll", SetLastError = true)]
+internal unsafe static extern uint HttpSendResponseEntityBody(SafeHandle requestQueueHandle, ulong requestId, uint flags, ushort entityChunkCount, HTTP_DATA_CHUNK* pEntityChunks, uint* pBytesSent, Microsoft.Win32.SafeHandles.SafeLocalAllocHandle pRequestBuffer, uint requestBufferLength, NativeOverlapped* pOverlapped, void* pLogData);
+```
+I believe it's a stub that calls into a native method defined in `httpapi.dll` that handles the low level response transmission.
+
+
+![JSON Server CPU call tree](./JsonServerCpuCallTree.png)
+
+The asynchronous ODataWriter request took 678ms while the synchronous version took 335ms. I focussed my analysis on the synchronous version because the current implementation of the async ODataWriter consists of wrapping the synchronous calls with tasks. The async API is also currently in the process of being rewritten.  Also, the synchronous writer represents the best case ODataWriter and still performs poorly compared to the async JsonSerializer.
+
+About 296ms (88.36%) were spent in the OData writer methods.
+
+![Synchronous OData server CPU call tree](./ODataSyncServerCpuCallTree.png)
 
 ## Conclusions
 
-TODO
+I found it interesting that out of the 18ms spent during serialization, only 3-4ms were spent transmitting data over the stream. Also note that `JsonSerializer.WriteCore` is a synchronous method, in fact it doesn't write to the stream, it simply writes to a buffered writer. The `JsonSerializer` wraps its `Utf8JsonWriter` over a buffered writer.
