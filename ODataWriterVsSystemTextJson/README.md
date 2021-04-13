@@ -140,7 +140,7 @@ Another thing I quickly noticed from the functions view graph is that string con
 
 So the flushing and string concatenation account for 48ms. I am curious to find out how the remaining 248ms are distributed: how much of that is spent in write-related activities, how much is spent in Edm-related activities, etc. But I haven't found the time to do that breakdown yet.
 
-I also analyzed the CPU usage in the async OData server just to try understand why the response time in the async case is almost double that of the sync version if their implementations are largely identical. Could the async overhead be that significant? Well surprisingly, it seems that over 50% of CPU time was actually spent on event tracing. Apparently, the `Microsoft.OData.TaskUtils.FollowOnSuccessWithTask(this Task antecedentTask, Func<Task, Task> operation)` leads to event writes to the ETW (Event Tracing for Windows), which in this case seems to be quite expensive. I don't know why this happens, I haven't yet verified whether this consistently happens even when we're not attaching a profiler and I don't know if it has anything to do with the specific implementation of our `FollowOnSuccessWithTask`. But this needs to be investigated further.
+I also analyzed the CPU usage in the async OData server just to try understand why the response time in the async case is almost double that of the sync version if their implementations are largely identical. Furthermore the gap between sync and async OData in the in-memory and file benchmarks was not that significant. Well surprisingly, it seems that over 50% of CPU time was actually spent on event tracing. Apparently, the `Microsoft.OData.TaskUtils.FollowOnSuccessWithTask(this Task antecedentTask, Func<Task, Task> operation)` leads to event writes to the ETW (Event Tracing for Windows), which in this case seems to be quite expensive. I don't know why this happens, I haven't yet verified whether this consistently happens even when we're not attaching a profiler and I don't know if it has anything to do with the specific implementation of our `FollowOnSuccessWithTask` or the fact it was making network requests. It could be worthwhile to investigate this further.
 
 ![ETW CPU Time](./ODataAsyncServerCpuEtwEvent.png)
 
@@ -228,8 +228,6 @@ internal static void WriteEscapedJsonStringValue(
         while (currentIndex < firstIndex)
         {
             int subStrLength = firstIndex - currentIndex;
-
-            Debug.Assert(subStrLength > 0, "SubStrLength should be greater than 0 always");
 
             // If the first index of the special character is larger than the buffer length,
             // flush everything to the buffer first and reset the buffer to the next chunk.
