@@ -152,44 +152,44 @@ The JsonSerializer uses the [`Utf8JsonWriter`](https://source.dot.net/#System.Te
 
 ```c#
 private void WriteStringEscapeValue(ReadOnlySpan<char> value, int firstEscapeIndexVal)
-        {
-            // this is later used to check whether the allocated block
-            // is rented from the pool, so that it can be returned
-            char[]? valueArray = null;
+{
+    // this is later used to check whether the allocated block
+    // is rented from the pool, so that it can be returned
+    char[]? valueArray = null;
 
-            // this determines the size to allocate for the escaped string
-            // if it has found at least one character that needs to be escaped
-            // (i.e. firstEscapeIndexVal >= 0), then it assumes that the
-            // remaining characters could also be escaped and allocates
-            // enough memory to store the characters if they were escaped.
-            // In the worst case, escaping a 1-byte ASCII character could increase its size by 6x
-            // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,60)
-            // So in the worst case, this length will be 6x the size of the input
-            int length = JsonWriterHelper.GetMaxEscapedLength(value.Length, firstEscapeIndexVal);
+    // this determines the size to allocate for the escaped string
+    // if it has found at least one character that needs to be escaped
+    // (i.e. firstEscapeIndexVal >= 0), then it assumes that the
+    // remaining characters could also be escaped and allocates
+    // enough memory to store the characters if they were escaped.
+    // In the worst case, escaping a 1-byte ASCII character could increase its size by 6x
+    // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,60)
+    // So in the worst case, this length will be 6x the size of the input
+    int length = JsonWriterHelper.GetMaxEscapedLength(value.Length, firstEscapeIndexVal);
 
-            // the stackalloc threshold is 256
-            // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,54)
-            // allocate the array on the stack if length <= 256 otherwise rent from pool
-            Span<char> escapedValue = length <= JsonConstants.StackallocThreshold ?
-                stackalloc char[length] :
-                (valueArray = ArrayPool<char>.Shared.Rent(length));
+    // the stackalloc threshold is 256
+    // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,54)
+    // allocate the array on the stack if length <= 256 otherwise rent from pool
+    Span<char> escapedValue = length <= JsonConstants.StackallocThreshold ?
+        stackalloc char[length] :
+        (valueArray = ArrayPool<char>.Shared.Rent(length));
 
-            // copies the input string into the allocated array
-            // escaping characters where necessary
-            // this returns the actually size written because
-            // the allocated array is likely larger than the actual length
-            // of the escaped string
-            JsonWriterHelper.EscapeString(value, escapedValue, firstEscapeIndexVal, _options.Encoder, out int written);
+    // copies the input string into the allocated array
+    // escaping characters where necessary
+    // this returns the actually size written because
+    // the allocated array is likely larger than the actual length
+    // of the escaped string
+    JsonWriterHelper.EscapeString(value, escapedValue, firstEscapeIndexVal, _options.Encoder, out int written);
 
-            // write the escaped string to the buffered writer's memory
-            WriteStringByOptions(escapedValue.Slice(0, written));
+    // write the escaped string to the buffered writer's memory
+    WriteStringByOptions(escapedValue.Slice(0, written));
 
-            // return array if it was rented
-            if (valueArray != null)
-            {
-                ArrayPool<char>.Shared.Return(valueArray);
-            }
-        }
+    // return array if it was rented
+    if (valueArray != null)
+    {
+        ArrayPool<char>.Shared.Return(valueArray);
+    }
+}
 ```
 
 Another thing I have noticed is that there seems to be no method in the Utf8JsonWriter that takes an `object` parameter or returns an `object`. This probably helps prevents boxing of primitive values. If this is indeed the case, I'd be curious to know how it pull out values from the object being serialized without boxing.
