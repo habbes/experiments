@@ -6,7 +6,8 @@
   * [Benchmarks](#benchmarks)
   * [Comparing Http Server Response Times](#comparing-http-server-response-times)
   * [CPU Profiling](#cpu-profiling)
-- [Conclusions](#conclusions)
+- [Comparing Implementations](#comparing-implementations)
+- [Conclusion](#conclusions)
 
 ## Overview
 
@@ -14,12 +15,14 @@ This experiment compares the performance differences between `JsonSerializer` (`
 
 The experiments are based on serializing a collection of [Customer](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/DataModel.cs) entities.
 
-There's an `IExperimentWriter` interface that abstracts writing a collection of `Customer`s to a stream. And we compare 3 implementations:
-- `JsonExperimentWriter` based on `JsonSerializer.SerializeAsync`
-- `ODataExperimentWriter` based on an asynchronous `ODataWriter`. This simulates the steps taken by WebApi's `ODataResourceSetSerializer` to serialize an entity set response.
-- `ODataSyncExperimentWriter` based on a synchronous `ODataWriter`. Similar to `ODataExperimentWriter` but uses synchronous write methods instead of async.
+There's an [`IExperimentWriter`](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/IExperimentWriter.cs) interface that abstracts writing a collection of `Customer`s to a stream. And we compare 3 implementations:
+- [`JsonExperimentWriter`](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/JsonExperimentWriter.cs) based on `JsonSerializer.SerializeAsync`
+- [`ODataExperimentWriter`](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/ODataExperimentWriter.cs) based on an asynchronous `ODataWriter`. This simulates the steps taken by WebApi's `ODataResourceSetSerializer` to serialize an entity set response.
+- [`ODataSyncExperimentWriter`](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/ODataExperimentWriter.cs) based on a synchronous `ODataWriter`. Similar to `ODataExperimentWriter` but uses synchronous write methods instead of async.
 
 The experiments compare writing to a memory stream, writing to a file as well as writing a http response from a simple server. The purpose of this is to account for potential I/O overhead that may affect the metrics.
+
+The HTTP servers are based on a simple class ([ExperimentServer](./ODataWriterVsSystemTextJson/ODataWriterVsSystemTextJson/ExperimentServer.cs)) that takes an `IExperimentWriter` as input and sends a collection of `Customer`s as response to all requests.
 
 ## Project setup
 
@@ -75,6 +78,8 @@ Anyway, from the results above, we clearly see that the JsonSerializer is around
 
 It is expected that for a single request, `WriteODataSync` should perform better than `WriteOData` due to the extra async overhead in the async writers.
 
+While this analysis primarily focusses on response time and CPU usage, we can see that the memory overhead is considerably greater in OData as well.
+
 ### Comparing Http Server response times
 
 To compare the response time of http requests based on the different serializers, go to the `Main` method of the main project and uncomment the `TestServers()` statement and comment out the remaining statements in the method. Then run the application (preferrably in Release mode).
@@ -116,10 +121,159 @@ I believe it's a stub that calls into a native method defined in `httpapi.dll` t
 
 The asynchronous ODataWriter request took 678ms while the synchronous version took 335ms. I focussed my analysis on the synchronous version because the current implementation of the async ODataWriter consists of wrapping the synchronous calls with tasks. The async API is also currently in the process of being rewritten.  Also, the synchronous writer represents the best case ODataWriter and still performs poorly compared to the async JsonSerializer.
 
-About 296ms (88.36%) were spent in the OData writer methods.
+About 296ms (88.36%) were spent in the OData writer methods. It's a bit trickier to determine where the majority of the bottleneck is because the CPU time is scattered across so many methods and deep call trees:
 
 ![Synchronous OData server CPU call tree](./ODataSyncServerCpuCallTree.png)
 
-## Conclusions
+Switching to the functions view to make it easier to spot the most dominant methods, I quickly noticed that 29ms (8.66%) is spent in the native http call. This accounted for only 3ms in the JsonSerializer case. Both serializers are writing about the same amount of data (OData payload context an @odata.context url property) but the OData serializer spends about 10x times in the native http stack. My suspicion is that this is due to the lack of buffering and frequent calls to StreamWriter.Write and flushing.
 
-I found it interesting that out of the 18ms spent during serialization, only 3-4ms were spent transmitting data over the stream. Also note that `JsonSerializer.WriteCore` is a synchronous method, in fact it doesn't write to the stream, it simply writes to a buffered writer. The `JsonSerializer` wraps its `Utf8JsonWriter` over a buffered writer.
+![Synchronous OData Server CPU functions view](./ODataSyncServerCpuFunctionsList.png)
+
+The following images show that underlying ODataWriter write methods end up calling either `StreamWriter.Write(string)` (28ms) or `StreamWriter.Write(char)` (9ms). In both methods, the majority of the time is actually spent flushing to the underlying stream (24ms/28ms for Write(string) and 8ms/9ms for Write(char)). So the amount of time the OData writer was spending flushing single characters to the http stream is twice the time JsonSerializer spent writing the entire payload to the stream. This indicates that there's a significant overhead associated with sending a single character to the stream and our frequent calls to the stream writer lead to lots of inefficiencies.
+
+![StreamWriter flushing CPU time](./ODataSyncServerCpuStreamWriterFlush.png)
+
+![StreamWriter Write(string) CPU time](./ODataSyncServerCpuStreamWriterWriteString.png)
+![StreamWriter Write(char) CPU time](./ODataSyncServerCpuStreamWriterWriteChar.png)
+
+Another thing I quickly noticed from the functions view graph is that string concatenation accounted for 11ms (3.28%), which is also more than double the time the JsonSerializer spends writing to its stream.
+
+So the flushing and string concatenation account for 48ms, I was curious to find out how the remaining 248ms are distributed, how much of that is spent in write-related activities, how much is spent in Edm-related activities, etc.
+
+## Comparing implementations
+
+If we take another look at the JsonSerializer's call tree, we noticed that out of the 18ms spent in the `JsonSerializer.WriteCoreAsync` method, 11ms are spent in `JsonSerializer.Write` and only 4ms in `Stream.WriteAsync`. The `JsonSerializer.Write` method is (as the name suggests) a synchronous method. It does not write to the stream, instead it writes to a [buffered writer](https://source.dot.net/#System.Text.Json/PooledByteBufferWriter.cs) that rents buffers from the shared `ArrayPool` (avoids memory allocations). When the buffer [is about 90% full](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializer.Write.Stream.cs,98) then it writes the buffer content to the stream. The buffered writer starts with an initial buffer size of [16k](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.cs,17) by default and is designed to not expand the buffer more than 4 times (expanding the buffer involves [renting a larger buffer from the pool and copying data from the old buffer](https://source.dot.net/#System.Text.Json/PooledByteBufferWriter.cs,126)). For reference, the source code of `JsonSerializer.WriteAsync` can be found [here](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializer.Write.Stream.cs,85).
+
+The JsonSerializer uses the [`Utf8JsonWriter`](https://source.dot.net/#System.Text.Json/System/Text/Json/Writer/Utf8JsonWriter.cs) to write the utf8-encoded JSON to the buffered writer. This writer is also designed not to allocate memory. It uses `Span<>` and `ReadOnlySpan<>` of `char` and `byte` instead of working with strings directly. When it needs to get a block of memory in order to write a string into, it either allocates an array on the stack using `stackalloc` (when the size < 256 bytes) or rents from the shared array pool. For example, when it needs to write a string property name or value, it first checks if the string needs to be escaped. If the string needs to escaped, then it will stackalloc or rent an array to store the escaped string into. The following excerpt from the code provides an example of this. I've annotated the code with comments and remove some debug assertions for better clarity. You can check the actual source [here](https://source.dot.net/#System.Text.Json/System/Text/Json/Writer/Utf8JsonWriter.WriteValues.String.cs,183).
+
+```c#
+private void WriteStringEscapeValue(ReadOnlySpan<char> value, int firstEscapeIndexVal)
+        {
+            // this is later used to check whether the allocated block
+            // is rented from the pool, so that it can be returned
+            char[]? valueArray = null;
+
+            // this determines the size to allocate for the escaped string
+            // if it has found at least one character that needs to be escaped
+            // (i.e. firstEscapeIndexVal >= 0), then it assumes that the
+            // remaining characters could also be escaped and allocates
+            // enough memory to store the characters if they were escaped.
+            // In the worst case, escaping a 1-byte ASCII character could increase its size by 6x
+            // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,60)
+            // So in the worst case, this length will be 6x the size of the input
+            int length = JsonWriterHelper.GetMaxEscapedLength(value.Length, firstEscapeIndexVal);
+
+            // the stackalloc threshold is 256
+            // (see: https://source.dot.net/#System.Text.Json/System/Text/Json/JsonConstants.cs,54)
+            // allocate the array on the stack if length <= 256 otherwise rent from pool
+            Span<char> escapedValue = length <= JsonConstants.StackallocThreshold ?
+                stackalloc char[length] :
+                (valueArray = ArrayPool<char>.Shared.Rent(length));
+
+            // copies the input string into the allocated array
+            // escaping characters where necessary
+            // this returns the actually size written because
+            // the allocated array is likely larger than the actual length
+            // of the escaped string
+            JsonWriterHelper.EscapeString(value, escapedValue, firstEscapeIndexVal, _options.Encoder, out int written);
+
+            // write the escaped string to the buffered writer's memory
+            WriteStringByOptions(escapedValue.Slice(0, written));
+
+            // return array if it was rented
+            if (valueArray != null)
+            {
+                ArrayPool<char>.Shared.Return(valueArray);
+            }
+        }
+```
+
+Another thing I have noticed is that there seems to be no method in the Utf8JsonWriter that takes an `object` parameter or returns an `object`. This probably helps prevents boxing of primitive values. If this is indeed the case, I'd be curious to know how it pull out values from the object being serialized without boxing.
+
+Now let's look at the OData's `JsonValueUtils.WriteEscapedJsonStringValue` which accomplishes a similar purpose (it accounts for 22ms or 6.57% of CPU usage). I've also added some comments to the following code and removed
+some error-checking statements.
+
+```c#
+internal static void WriteEscapedJsonStringValue(
+    TextWriter writer,
+    string inputString,
+    ODataStringEscapeOption stringEscapeOption,
+    Ref<char[]> buffer,
+    ICharArrayPool bufferPool)
+{
+    int firstIndex;
+    if (!JsonValueUtils.CheckIfStringHasSpecialChars(inputString, stringEscapeOption, out firstIndex))
+    {
+        // no characters to escape, write the string as-is
+        writer.Write(inputString);
+    }
+    else
+    {
+        int inputStringLength = inputString.Length;
+
+        // this gets a char[] buffer. If the bufferPool is not null,
+        // the it rents an array (fixed BufferLength of 128) from the pool
+        // if the bufferPool is null, the it allocates a new array
+        // using new char[BufferLengh]
+        buffer.Value = BufferUtils.InitializeBufferIfRequired(bufferPool, buffer.Value);
+        int bufferLength = buffer.Value.Length;
+        int bufferIndex = 0;
+        int currentIndex = 0;
+
+        // Let's copy and flush strings up to the first index of the special char
+        while (currentIndex < firstIndex)
+        {
+            int subStrLength = firstIndex - currentIndex;
+
+            Debug.Assert(subStrLength > 0, "SubStrLength should be greater than 0 always");
+
+            // If the first index of the special character is larger than the buffer length,
+            // flush everything to the buffer first and reset the buffer to the next chunk.
+            // Otherwise copy to the buffer and go on from there.
+            if (subStrLength >= bufferLength)
+            {
+                inputString.CopyTo(currentIndex, buffer.Value, 0, bufferLength);
+                writer.Write(buffer.Value, 0, bufferLength);
+                currentIndex += bufferLength;
+            }
+            else
+            {
+                WriteSubstringToBuffer(inputString, ref currentIndex, buffer.Value, ref bufferIndex, subStrLength);
+            }
+        }
+
+        // start writing escaped strings
+        // this goes through a loop of writing escaped characters to the
+        // buffer then flushing the buffer to the writer whenever
+        // the buffer fills up
+        WriteEscapedStringToBuffer(writer, inputString, ref currentIndex, buffer.Value, ref bufferIndex, stringEscapeOption);
+
+        // write any remaining chars to the writer
+        if (bufferIndex > 0)
+        {
+            writer.Write(buffer.Value, 0, bufferIndex);
+        }
+    }
+}
+
+```
+
+This method writes to the writer a lot, that accounts for 19/22ms. It allocates a buffer to store the escaped string, but the buffer might not be large enough, so flushes the content of the buffer to the stream, then resets the buffer to accept new characters. I don't think preallocating a buffer large enough to store the escaped string will result in noticeable performance gains if we still have to write flush that buffer to the stream after escaping it. I think the main gains from JsonSerializer comes from the fact that when we're writing to the writer's memory, it's in memory and not a stream.
+
+We can see that the JsonWriter also uses an array pool. The `ICharArrayPool` is actually a custom interface defined in `Microsoft.OData.Buffers`. But there's no default implementation provided either in the core library or in WebApi. So it's not used in the WebApi's formatter. In principle, an array pool should be passed to the `ODataMessageWriterSettings.ArrayPool` property. When it's not provided, then `JsonWriter` simply allocates a new array when `BufferUtils.RentFromBuffer` is called. Using an actual pool here could save memory allocations and reduce GC pressure.
+
+I also noticed that the `JsonValueUtils.CheckIfStringHasSpecialChars` method used in OData accounts for 2ms of CPU. It's a simple loop that goes through each character and returns at the first character that's in a character map of special characters. JsonSerializer uses an encoder to find the first special character, the default one is a highly optimized method that first tries to SIMD if supported then uses an unrolled loop when checking the remaining characters (see [source here](https://source.dot.net/#System.Text.Encodings.Web/System/Text/Encodings/Web/OptimizedInboxTextEncoder.cs,415)). While 2ms may not be that much on its own, I think this indicates that there are other areas where we could micro-optimize certain methods and the overall result could add up to noticeable improvements.
+
+Another thing to note is that the `Utf8JsonWriter` can write utf8 bytes directly (JSON is based on utf-8). But C# `char`s are based on utf16. According to [this video](https://www.youtube.com/watch?v=gb3zcdZ-y3M), support utf8 directly does lead to better performance, but I don't know whether it would make a difference in our case.
+
+## Conclusion
+
+While we should expect the OData writer to be less performant than JsonSerializer because it simply has to do more work, I believe based on these findings that it's possible to gain noticeable performance improvements on ODataWriter without sacrificing the "OData expectations" (e.g. writing context urls and annotations, possible Edm validations, etc.).
+
+Here are a couple of things that I think we should try in an effort to improve performance. Note that I have not yet tried any of them, so I'm not sure what type of gains we should expect or how effective they will be:
+
+- Pass an `ICharArrayPool` to the `ODataMessageWriterSettings` when setting up the writer
+- Consider using `Utf8JsonWriter` instead of our own `JsonWriter` if possible (Maybe this could result in public API changes? or adapters)
+- Avoid frequent writes to the stream by using a buffered writer with a decently-sized buffer rented from an array pool
+- Use highly-optimized BCL methods whenever possible instead of reinventing the wheel
+- Scan our methods for micro-optimization opportunities like avoiding memory allocations, avoiding string concatenations, loop-unrolling, etc. wherever such optimizations could add up to decent performance gains
