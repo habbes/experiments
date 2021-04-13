@@ -7,7 +7,7 @@
   * [Comparing Http Server Response Times](#comparing-http-server-response-times)
   * [CPU Profiling](#cpu-profiling)
 - [Comparing Implementations](#comparing-implementations)
-- [Conclusion](#conclusions)
+- [Conclusion](#conclusion)
 
 ## Overview
 
