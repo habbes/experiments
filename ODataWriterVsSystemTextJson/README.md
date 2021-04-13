@@ -138,7 +138,7 @@ The following images show that underlying ODataWriter write methods end up calli
 
 Another thing I quickly noticed from the functions view graph is that string concatenation accounted for 11ms (3.28%), which is also more than double the time the JsonSerializer spends writing to its stream.
 
-So the flushing and string concatenation account for 48ms, I was curious to find out how the remaining 248ms are distributed, how much of that is spent in write-related activities, how much is spent in Edm-related activities, etc.
+So the flushing and string concatenation account for 48ms. I am curious to find out how the remaining 248ms are distributed: how much of that is spent in write-related activities, how much is spent in Edm-related activities, etc. But I haven't found the time to do that breakdown yet.
 
 ## Comparing implementations
 
