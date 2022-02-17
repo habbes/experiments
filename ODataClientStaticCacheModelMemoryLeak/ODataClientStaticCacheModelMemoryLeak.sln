@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32126.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ODataClientStaticCacheModelMemoryLeak", "ODataClientStaticCacheModelMemoryLeak.csproj", "{D2CF42D5-8709-45FA-B577-C9434B3E158C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2CF42D5-8709-45FA-B577-C9434B3E158C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2CF42D5-8709-45FA-B577-C9434B3E158C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2CF42D5-8709-45FA-B577-C9434B3E158C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2CF42D5-8709-45FA-B577-C9434B3E158C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03E105D0-F9A8-41D3-9F20-F6AEAA832BD5}
+	EndGlobalSection
+EndGlobal
