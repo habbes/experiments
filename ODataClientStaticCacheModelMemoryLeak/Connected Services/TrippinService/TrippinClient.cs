@@ -9,6 +9,8 @@
 //------------------------------------------------------------------------------
 
 // Generation date: 17/02/2022 16:34:46
+using System.ComponentModel.DataAnnotations;
+
 namespace Trippin
 {
     /// <summary>
@@ -379,6 +381,7 @@ namespace Trippin
 
         [global::Microsoft.OData.Client.OriginalNameAttribute("UserName")]
         [global::System.ComponentModel.DataAnnotations.RequiredAttribute(ErrorMessage = "UserName is required.")]
+        [Key]
         public virtual string UserName
         {
             get
@@ -836,6 +839,7 @@ namespace Trippin
 
         [global::Microsoft.OData.Client.OriginalNameAttribute("AirlineCode")]
         [global::System.ComponentModel.DataAnnotations.RequiredAttribute(ErrorMessage = "AirlineCode is required.")]
+        [Key]
         public virtual string AirlineCode
         {
             get
@@ -974,6 +978,7 @@ namespace Trippin
 
         [global::Microsoft.OData.Client.OriginalNameAttribute("IcaoCode")]
         [global::System.ComponentModel.DataAnnotations.RequiredAttribute(ErrorMessage = "IcaoCode is required.")]
+        [Key]
         public virtual string IcaoCode
         {
             get
@@ -1371,6 +1376,7 @@ namespace Trippin
 
         [global::Microsoft.OData.Client.OriginalNameAttribute("TripId")]
         [global::System.ComponentModel.DataAnnotations.RequiredAttribute(ErrorMessage = "TripId is required.")]
+        [Key]
         public virtual int TripId
         {
             get
