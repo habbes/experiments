@@ -105,7 +105,7 @@ We still have 10 instances.
 
 **Why do we have instances of `EdmEntitType` left in memory but not `EdmModel`?**
 
-The 10 instances we see here are the 10 instances from the model that are cached in `ClientEdmModel.EdmStructuredElements` when the service model is loaded (see related [GitHub issue](https://github.com/OData/odata.net/issues/2321) for more context). These 10 instances will remain in-memory throughout the lifetime of the application. Contrary to `CsdlSemanticsEntityTypeDefinition`, `EdmEntity` and other schema elements don't hold a reference back to the parent `EdmModel`. Since these schema elements do not keep the model in memory, the `EdmModel` got garbage-collected even though `EdmEntity` instances remained alive.
+The 10 instances we see here are the 10 instances from the model that are cached in `ClientEdmModel.EdmStructuredElements` when the service model is loaded (see related [GitHub issue](https://github.com/OData/odata.net/issues/2321) for more context). These 10 instances will remain in-memory throughout the lifetime of the application. Unlike schema elements in `CsdlSemanticsModel`-based model (e.g. `CsdlSemanticsEntityTypeDefinition`), `EdmEntityType` and other schema elements don't hold a reference back to the parent `EdmModel`. Since these schema elements do not keep the model in memory, the `EdmModel` got garbage-collected even though `EdmEntityType` instances remained alive.
 
 **Why do we have only 10 instances of `EdmEntityType` throughout while we have a growing number of `CsdlSemanticsEntitTypeDefinition` even though the same number of models are created in both cases?**
 
