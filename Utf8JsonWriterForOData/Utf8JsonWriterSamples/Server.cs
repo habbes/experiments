@@ -9,6 +9,7 @@ namespace Utf8JsonWriterSamples
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Net;
     using System.Text;
     using System.Threading.Tasks;
@@ -62,11 +63,13 @@ namespace Utf8JsonWriterSamples
         {
             while (_running)
             {
+                HttpListenerResponse resp = null;
+
                 try
                 {
                     HttpListenerContext ctx = await _server.GetContextAsync();
                     HttpListenerRequest req = ctx.Request;
-                    HttpListenerResponse resp = ctx.Response;
+                    resp = ctx.Response;
                     Console.WriteLine("Request received: {0}", req.Url.ToString());
 
                     T responseData = default(T);
@@ -93,7 +96,17 @@ namespace Utf8JsonWriterSamples
                     sw.Stop();
                     Console.WriteLine("Response time {0}ms, request {1}", sw.ElapsedMilliseconds, req.Url.ToString());
                 }
-                catch (Exception) { }
+                catch (Exception e)
+                {
+                    if (resp != null)
+                    {
+                        resp.StatusCode = 500;
+                    }
+
+                    using var errorWriter = new StreamWriter(resp.OutputStream);
+                    errorWriter.Write($"{{\"error\": \"{e.Message}\"}}");
+                    
+                }
             }
         }
     }

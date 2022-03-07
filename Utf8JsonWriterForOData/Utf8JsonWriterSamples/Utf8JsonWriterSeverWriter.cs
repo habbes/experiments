@@ -19,7 +19,7 @@ namespace Utf8JsonWriterSamples
             _writerFactory = writerFactory;
         }
 
-        public Task WritePayload(IEnumerable<Customer> payload, Stream stream)
+        public async Task WritePayload(IEnumerable<Customer> payload, Stream stream)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -43,114 +43,134 @@ namespace Utf8JsonWriterSamples
             var resourceSet = new ODataResourceSet();
             //Console.WriteLine("Start writing resource set");
             jsonWriter.WriteStartObject();
-            jsonWriter.WritePropertyName("context");
-            jsonWriter.WriteString("context", "contextUrl");
+            jsonWriter.WriteString("@odata.context", $"{settings.ODataUri.ServiceRoot.AbsoluteUri}/$metadata/#Customers");
             jsonWriter.WriteStartArray("value");
 
 
-           
+
             //await writer.WriteStartAsync(resourceSet);
             //Console.WriteLine("About to write resources {0}", payload.Count());
 
-            //foreach (var customer in payload)
-            //{
-            //    // await resourceSerializer.WriteObjectInlineAsync(item, elementType, writer, writeContext);
-            //    // create resource with only primitive types
-            //    var resource = new ODataResource
-            //    {
-            //        Properties = new[]
-            //        {
-            //            new ODataProperty
-            //            {
-            //                Name = "Id",
-            //                Value = customer.Id
-            //            },
-            //            new ODataProperty { Name = "Name", Value = customer.Name },
-            //            new ODataProperty
-            //            {
-            //                Name = "Emails",
-            //                Value = new ODataCollectionValue
-            //                {
-            //                    Items = customer.Emails,
-            //                    TypeName = "Collection(Edm.String)"
-            //                }
-            //            }
-            //        }
-            //    };
+            foreach (var customer in payload)
+            {
+                // await resourceSerializer.WriteObjectInlineAsync(item, elementType, writer, writeContext);
+                // create resource with only primitive types
+                var resource = new ODataResource
+                {
+                    Properties = new[]
+                    {
+                        new ODataProperty
+                        {
+                            Name = "Id",
+                            Value = customer.Id
+                        },
+                        new ODataProperty { Name = "Name", Value = customer.Name },
+                        new ODataProperty
+                        {
+                            Name = "Emails",
+                            Value = new ODataCollectionValue
+                            {
+                                Items = customer.Emails,
+                                TypeName = "Collection(Edm.String)"
+                            }
+                        }
+                    }
+                };
 
-            //    //Console.WriteLine("Start writing resource {0}", customer.Id);
-            //    await writer.WriteStartAsync(resource);
-            //    // skip WriterStreamPropertiesAsync
-            //    // WriteComplexPropertiesAsync
-            //    // -- HomeAddress
-            //    var homeAddressInfo = new ODataNestedResourceInfo
-            //    {
-            //        Name = "HomeAddress",
-            //        IsCollection = false
-            //    };
-            //    // start write homeAddress
-            //    await writer.WriteStartAsync(homeAddressInfo);
+                //Console.WriteLine("Start writing resource {0}", customer.Id);
+                //await writer.WriteStartAsync(resource);
+                jsonWriter.WriteStartObject();
+                jsonWriter.WriteNumber("Id", customer.Id);
+                jsonWriter.WriteString("Name", customer.Name);
+                jsonWriter.WriteStartArray("Emails");
+                foreach (var email in customer.Emails)
+                {
+                    jsonWriter.WriteStringValue(email);
+                }
+                jsonWriter.WriteEndArray();
 
-            //    var homeAddressResource = new ODataResource
-            //    {
-            //        Properties = new[]
-            //        {
-            //            new ODataProperty { Name = "City", Value = customer.HomeAddress.City },
-            //            new ODataProperty { Name = "Street", Value = customer.HomeAddress.Street }
-            //        }
-            //    };
-            //    await writer.WriteStartAsync(homeAddressResource);
-            //    await writer.WriteEndAsync();
+                // skip WriterStreamPropertiesAsync
+                // WriteComplexPropertiesAsync
+                // -- HomeAddress
+                var homeAddressInfo = new ODataNestedResourceInfo
+                {
+                    Name = "HomeAddress",
+                    IsCollection = false
+                };
+                // start write homeAddress
+                //await writer.WriteStartAsync(homeAddressInfo);
 
-            //    // end write homeAddress
-            //    await writer.WriteEndAsync();
-            //    // -- End HomeAddress
+                var homeAddressResource = new ODataResource
+                {
+                    Properties = new[]
+                    {
+                        new ODataProperty { Name = "City", Value = customer.HomeAddress.City },
+                        new ODataProperty { Name = "Street", Value = customer.HomeAddress.Street }
+                    }
+                };
+                //await writer.WriteStartAsync(homeAddressResource);
+                //await writer.WriteEndAsync();
+                jsonWriter.WriteStartObject("HomeAddress");
+                jsonWriter.WriteString("City", customer.HomeAddress.City);
+                jsonWriter.WriteString("Street", customer.HomeAddress.Street);
 
-            //    // -- Addresses
-            //    var addressesInfo = new ODataNestedResourceInfo
-            //    {
-            //        Name = "Addresses",
-            //        IsCollection = true
-            //    };
-            //    // start addressesInfo
-            //    await writer.WriteStartAsync(addressesInfo);
+                // end write homeAddress
+                //await writer.WriteEndAsync();
+                jsonWriter.WriteEndObject();
+                // -- End HomeAddress
 
-            //    var addressesResourceSet = new ODataResourceSet();
-            //    // start addressesResourceSet
-            //    await writer.WriteStartAsync(addressesResourceSet);
-            //    foreach (var address in customer.Addresses)
-            //    {
-            //        var addressResource = new ODataResource
-            //        {
-            //            Properties = new[]
-            //            {
-            //                new ODataProperty { Name = "City", Value = address.City },
-            //                new ODataProperty { Name = "Street", Value = address.Street }
-            //            }
-            //        };
-
-            //        await writer.WriteStartAsync(addressResource);
-            //        await writer.WriteEndAsync();
-            //    }
-
-            //    // end addressesResourceSet
-            //    await writer.WriteEndAsync();
+                // -- Addresses
+                var addressesInfo = new ODataNestedResourceInfo
+                {
+                    Name = "Addresses",
+                    IsCollection = true
+                };
+                // start addressesInfo
+                //await writer.WriteStartAsync(addressesInfo);
+                jsonWriter.WriteStartArray("Addresses");
 
 
-            //    // end addressesInfo
-            //    await writer.WriteEndAsync();
+                var addressesResourceSet = new ODataResourceSet();
+                // start addressesResourceSet
+                //await writer.WriteStartAsync(addressesResourceSet);
+                foreach (var address in customer.Addresses)
+                {
+                    var addressResource = new ODataResource
+                    {
+                        Properties = new[]
+                        {
+                            new ODataProperty { Name = "City", Value = address.City },
+                            new ODataProperty { Name = "Street", Value = address.Street }
+                        }
+                    };
 
-            //    // -- End Addresses
+                    //await writer.WriteStartAsync(addressResource);
+                    jsonWriter.WriteStartObject();
+                    jsonWriter.WriteString("City", address.City);
+                    jsonWriter.WriteString("Street", address.Street);
+                    //await writer.WriteEndAsync();
+                    jsonWriter.WriteEndObject();
+                }
 
-            //    // end write resource
-            //    await writer.WriteEndAsync();
-            //    //Console.WriteLine("Finish writing resource {0}", customer.Id);
-            //    //Console.WriteLine("Finised customer {0}", customer.Id);
-            //}
+                // end addressesResourceSet
+                //await writer.WriteEndAsync();
+                jsonWriter.WriteEndArray();
+
+
+                // end addressesInfo
+                //await writer.WriteEndAsync();
+
+                // -- End Addresses
+
+                // end write resource
+                //await writer.WriteEndAsync();
+                jsonWriter.WriteEndObject();
+                //Console.WriteLine("Finish writing resource {0}", customer.Id);
+                //Console.WriteLine("Finised customer {0}", customer.Id);
+            }
             jsonWriter.WriteEndArray();
             jsonWriter.WriteEndObject();
-
-            return Task.CompletedTask;
+            await jsonWriter.FlushAsync();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.OData.Edm;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Utf8JsonWriterSamples
@@ -20,8 +21,8 @@ namespace Utf8JsonWriterSamples
                 model.MarkAsImmutable();
             }
 
-            var data = CustomerDataSet.GetCustomers(100);
-            var jsonServer = new Server<IEnumerable<Customer>>(8080, new Utf8JsonWriterSeverWriter(), data);
+            var data = CustomerDataSet.GetCustomers(5000);
+            var jsonServer = new Server<IEnumerable<Customer>>(8080, new Utf8JsonWriterSeverWriter(stream => new Utf8JsonWriter(stream)), data);
             jsonServer.Start();
             Console.WriteLine("JSON server running on http://localhost:8080");
 
