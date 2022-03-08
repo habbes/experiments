@@ -3,7 +3,7 @@
 This experment compares writing an OData response using the `ODataMessageWriter` vs using `Utf8JsonWriter` directly (i.e. without using `JsonSerializer`). The goal is to get acquainted with the `Utf8JsonWriter` APIs and settings and to get a sense of how `Utf8JsonWriter` could potentially be used by `ODataWriter` internally.
 
 The experiments runs and compares a number of servers on different ports.
-The servers return a JSON response of 5000 customer entities and displays the time it took to process the response. This is meant to give a rough idea of how the different serializers compare, but it should be considered an authoriative performance test. Will conduct more thorough performance evaluations once I have a better idea of which approach to narrow down to:
+The servers return a JSON response of 5000 customer entities (which is probably overkill for a single response) and displays the time it took to process the response. This is meant to give a rough idea of how the different serializers compare, but it should be considered an authoriative performance test. Will conduct more thorough performance evaluations once I have a better idea of which approach to narrow down to:
 
 ![Progam launch screenshot](./images/ProgramLaunchScreenshot.jpg)
 
@@ -15,6 +15,10 @@ The servers return a JSON response of 5000 customer entities and displays the ti
 8083 | Similar to the previous server, except that internal `Utf8JsonWriter` is configured to skip validation
 8084 | Uses the synchronous `ODataMessageWriter`
 8085 | Uses the async `ODataMessageWriter`
+
+The response times I recorded were flaky, I had to make a couple of requests for each endpoint before the response times stabilized. The "best" response times I observed for the `JsonSerializer` and the my custom serializers based on `Utf8JsonWriter` (i.e. ports 8080, 8081, 8082 and 8083) were comparable, ranging from 11ms - 20ms.
+
+The best reponse times I recorded for the synchronous OData writer were just below 200ms. For the async writer I didn't get lower than 350ms.
 
 ![Sample response times](./images/SampleResponseTimes.jpg)
 
@@ -67,5 +71,7 @@ In OData's `JsonWriter` There's an actual Scope (`sealed class Scope`) stack `St
 
 At a higher-level, the `JsonSerializer` uses a custom `WriterStack` struct with a backing array to keep track of the writer's state stored in a `WriterStackFrame` struct. `ODataWriterCore` uses a custom `ScopeStack` backed by `List` stored in `Scope` class that maintains more complex metadata about the current state of the writer.
 
+## Value conversion
+
 Questions to answer:
-- Does OData still need to support JSONP
+- Does OData still need to support JSONP?
