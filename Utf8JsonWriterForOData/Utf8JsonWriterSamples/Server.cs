@@ -15,6 +15,12 @@ namespace Utf8JsonWriterSamples
     using System.Threading.Tasks;
     using System.Web;
 
+    /// <summary>
+    /// A basic HTTP server that serializes JSON
+    /// responses based on the given data
+    /// using the specified <see cref="IServerWriter{T}"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class Server<T> : IDisposable
     {
         IServerWriter<T> _writer;

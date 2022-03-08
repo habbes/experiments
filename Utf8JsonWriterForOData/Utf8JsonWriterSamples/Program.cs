@@ -22,24 +22,25 @@ namespace Utf8JsonWriterSamples
             }
 
             var data = CustomerDataSet.GetCustomers(5000);
-            var jsonServer = new Server<IEnumerable<Customer>>(8080, new Utf8JsonWriterSeverWriter(stream => new Utf8JsonWriter(stream)), data);
-            jsonServer.Start();
-            Console.WriteLine("JSON server running on http://localhost:8080");
 
-            var odataServer = new Server<IEnumerable<Customer>>(8081, new ODataServerWriter(model), data);
-            odataServer.Start();
-            Console.WriteLine("OData server running on http://localhost:8081");
+            ServerCollection<IEnumerable<Customer>> servers = new(data, 8080);
 
-            var odataAsyncServer = new Server<IEnumerable<Customer>>(8082, new ODataAsyncServerWriter(model), data);
-            odataAsyncServer.Start();
-            Console.WriteLine("OData async server running on http://localhost:8082");
+            servers.AddServers(
+                ("Baseline JSON", new JsonSerializerServerWriter()),
+                ("Utf8JsonWriter Baseline", new Utf8JsonWriterBasicServerWriter(stream => new Utf8JsonWriter(stream))),
+                ("Utf8JsonWriter", new Utf8JsonWriterServerWriter(stream => new Utf8JsonWriter(stream))),
+                ("Utf8JsonWriter-NoValidation", new Utf8JsonWriterServerWriter(stream =>
+                    new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))),
+                ("OData Sync", new ODataServerWriter(model)),
+                ("OData Async", new ODataAsyncServerWriter(model)));
 
+            servers.StartServers();
+           
             Console.WriteLine("Press any key to terminate servers");
             Console.ReadKey();
+
             Console.WriteLine("Terminating servers...");
-            await jsonServer.Stop();
-            await odataServer.Stop();
-            await odataAsyncServer.Stop();
+            await servers.StopServers();
             Console.WriteLine("Servers terminated");
         }
     }

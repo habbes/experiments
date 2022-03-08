@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Utf8JsonWriterSamples
 {
+    /// <summary>
+    /// Writes Customer collection payload using <see cref="ODataMessageWriter"/>
+    /// </summary>
     class ODataServerWriter : IServerWriter<IEnumerable<Customer>>
     {
         IEdmModel model;

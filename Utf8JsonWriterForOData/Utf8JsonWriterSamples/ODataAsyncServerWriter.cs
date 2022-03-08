@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Utf8JsonWriterSamples
 {
+    /// <summary>
+    /// Writes Customer collection JSON using <see cref="ODataMessageWriter"/> async version.
+    /// </summary>
     class ODataAsyncServerWriter : IServerWriter<IEnumerable<Customer>>
     {
         IEdmModel _model;

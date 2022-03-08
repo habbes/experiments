@@ -10,11 +10,14 @@ using System.Threading.Tasks;
 
 namespace Utf8JsonWriterSamples
 {
-    class Utf8JsonWriterSeverWriter : IServerWriter<IEnumerable<Customer>>
+    /// <summary>
+    /// Writes a Customers collection payload using <see cref="Utf8JsonODataWriter"/>.
+    /// </summary>
+    class Utf8JsonWriterServerWriter : IServerWriter<IEnumerable<Customer>>
     {
         Func<Stream, Utf8JsonWriter> _writerFactory;
 
-        public Utf8JsonWriterSeverWriter(Func<Stream, Utf8JsonWriter> writerFactory)
+        public Utf8JsonWriterServerWriter(Func<Stream, Utf8JsonWriter> writerFactory)
         {
             _writerFactory = writerFactory;
         }
@@ -23,34 +26,17 @@ namespace Utf8JsonWriterSamples
         {
             var sw = new Stopwatch();
             sw.Start();
-            var settings = new ODataMessageWriterSettings();
-            settings.ODataUri = new ODataUri
-            {
-                ServiceRoot = new Uri("https://services.odata.org/V4/OData/OData.svc/")
-            };
-            //if (_useArrayPool)
-            //{
-            //    settings.ArrayPool = CharArrayPool.Shared;
-            //}
-            //InMemoryMessage message = new InMemoryMessage { Stream = stream };
 
+            var serviceRoot = new Uri("https://services.odata.org/V4/OData/OData.svc/");
             var jsonWriter = _writerFactory(stream);
-
-            //var messageWriter = new ODataMessageWriter((IODataResponseMessage)message, settings, model);
-            //var entitySet = model.EntityContainer.FindEntitySet("Customers");
-            //var writer = await messageWriter.CreateODataResourceSetWriterAsync(entitySet);
+            var writer = new Utf8JsonODataWriter(jsonWriter, serviceRoot, "Customers");
 
             var resourceSet = new ODataResourceSet();
             //Console.WriteLine("Start writing resource set");
-            jsonWriter.WriteStartObject();
-            jsonWriter.WriteString("@odata.context", $"{settings.ODataUri.ServiceRoot.AbsoluteUri}/$metadata/#Customers");
-            jsonWriter.WriteStartArray("value");
+            writer.WriteStart(resourceSet);
 
-
-
-            //await writer.WriteStartAsync(resourceSet);
             //Console.WriteLine("About to write resources {0}", payload.Count());
-
+            int count = 0;
             foreach (var customer in payload)
             {
                 // await resourceSerializer.WriteObjectInlineAsync(item, elementType, writer, writeContext);
@@ -77,17 +63,7 @@ namespace Utf8JsonWriterSamples
                     }
                 };
 
-                //Console.WriteLine("Start writing resource {0}", customer.Id);
-                //await writer.WriteStartAsync(resource);
-                jsonWriter.WriteStartObject();
-                jsonWriter.WriteNumber("Id", customer.Id);
-                jsonWriter.WriteString("Name", customer.Name);
-                jsonWriter.WriteStartArray("Emails");
-                foreach (var email in customer.Emails)
-                {
-                    jsonWriter.WriteStringValue(email);
-                }
-                jsonWriter.WriteEndArray();
+                writer.WriteStart(resource);
 
                 // skip WriterStreamPropertiesAsync
                 // WriteComplexPropertiesAsync
@@ -98,7 +74,7 @@ namespace Utf8JsonWriterSamples
                     IsCollection = false
                 };
                 // start write homeAddress
-                //await writer.WriteStartAsync(homeAddressInfo);
+                writer.WriteStart(homeAddressInfo);
 
                 var homeAddressResource = new ODataResource
                 {
@@ -108,15 +84,12 @@ namespace Utf8JsonWriterSamples
                         new ODataProperty { Name = "Street", Value = customer.HomeAddress.Street }
                     }
                 };
-                //await writer.WriteStartAsync(homeAddressResource);
-                //await writer.WriteEndAsync();
-                jsonWriter.WriteStartObject("HomeAddress");
-                jsonWriter.WriteString("City", customer.HomeAddress.City);
-                jsonWriter.WriteString("Street", customer.HomeAddress.Street);
+
+                writer.WriteStart(homeAddressResource);
+                writer.WriteEnd();
 
                 // end write homeAddress
-                //await writer.WriteEndAsync();
-                jsonWriter.WriteEndObject();
+                writer.WriteEnd();
                 // -- End HomeAddress
 
                 // -- Addresses
@@ -126,13 +99,13 @@ namespace Utf8JsonWriterSamples
                     IsCollection = true
                 };
                 // start addressesInfo
-                //await writer.WriteStartAsync(addressesInfo);
-                jsonWriter.WriteStartArray("Addresses");
+                writer.WriteStart(addressesInfo);
 
 
                 var addressesResourceSet = new ODataResourceSet();
                 // start addressesResourceSet
-                //await writer.WriteStartAsync(addressesResourceSet);
+                writer.WriteStart(addressesResourceSet);
+
                 foreach (var address in customer.Addresses)
                 {
                     var addressResource = new ODataResource
@@ -144,32 +117,36 @@ namespace Utf8JsonWriterSamples
                         }
                     };
 
-                    //await writer.WriteStartAsync(addressResource);
-                    jsonWriter.WriteStartObject();
-                    jsonWriter.WriteString("City", address.City);
-                    jsonWriter.WriteString("Street", address.Street);
-                    //await writer.WriteEndAsync();
-                    jsonWriter.WriteEndObject();
+                    writer.WriteStart(addressResource);
+                    writer.WriteEnd();
                 }
 
                 // end addressesResourceSet
-                //await writer.WriteEndAsync();
-                jsonWriter.WriteEndArray();
+                writer.WriteEnd();
 
 
                 // end addressesInfo
-                //await writer.WriteEndAsync();
+                writer.WriteEnd();
 
                 // -- End Addresses
 
                 // end write resource
-                //await writer.WriteEndAsync();
-                jsonWriter.WriteEndObject();
+                writer.WriteEnd();
                 //Console.WriteLine("Finish writing resource {0}", customer.Id);
                 //Console.WriteLine("Finised customer {0}", customer.Id);
+
+                // flush the inner writer periodically to prevent expanding the internal buffer indefinitely
+                // JSON writer does not commit data to output until it's flushed
+                // each customer accounts for about 220 bytes, after 66 iterations we have about 14k pending
+                // bytes in the buffer before flushing. I was trying to achieve similar behavior to JsonSerializer (0.9 * 16k)
+                if (count % 66 == 0)
+                {
+                    await jsonWriter.FlushAsync();
+                    count++;
+                }
             }
-            jsonWriter.WriteEndArray();
-            jsonWriter.WriteEndObject();
+
+            writer.WriteEnd();
             await jsonWriter.FlushAsync();
         }
     }
