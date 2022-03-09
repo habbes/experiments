@@ -117,9 +117,24 @@ void WritePrimitiveValue(this IJsonWriter, object value)
 }
 ```
 
-JsonSerializer has [built-in converters for built-n types](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,d82783b32be68dc9), these converters are strongly typed, inheriting from `JsonConverter<T>` and ensure that basic value types can be serialized without boxing. See [this BooleanConverter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/Converters/Value/BooleanConverter.cs,e0a7a6193d86bbd5) for example. When serializing a POCO instance (e.g. customers), some metadata will be generated about the type, and converters for each of its properties will be used for during serialization. I think a ["composite" converter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,96) is created dynamically for the type and cached, but I'm not 100% sure where this occurs in the code.
+JsonSerializer has [built-in converters for built-n types](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,d82783b32be68dc9), these converters are strongly typed, inheriting from `JsonConverter<T>` and ensure that basic value types can be serialized without boxing. See [this BooleanConverter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/Converters/Value/BooleanConverter.cs,e0a7a6193d86bbd5) for example:
+```c#
+internal sealed class BooleanConverter : JsonConverter<bool>
+{
+    /* ... */
+    public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
+    {
+        writer.WriteBooleanValue(value);
+    }
 
-This metadata is computed at runtime using reflection and cached. So the first call to `Serialize` might take longer than subsequent calls. Newer versions of JsonSerializer also allow you to opt for metadata serialization at compile time using source generators and eliminate the use of reflection. This can improve the serializer performance, reduce app size and memory footprint.
+    /* ... */
+}
+```
+
+
+ When serializing a POCO instance (e.g. customers), some metadata will be generated about the type, and converters for each of its properties will be used for during serialization. I think a ["composite" converter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,96) is created dynamically for the type and cached, but I'm not 100% sure where this occurs in the code.
+
+This metadata is computed at runtime using reflection and cached. So the first call to `Serialize` might take longer than subsequent calls. Newer versions of JsonSerializer also allow you to opt for [metadata generation at compile-time using source generators](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation-modes?pivots=dotnet-6-0) and eliminate the use of reflection. This can improve the serializer performance, reduce app size and memory footprint.
 
 Since in most cases OData WebAPI and OData Client serialize OData payloads from CLR classes, it might be worthwhile to evaluate whether generating strongly typed converters would considerably improve performance and reduce heap allocations instead of using `ODataResource`. We may also generate the converters from type definitions in the `IEdmModel`. This is a stretch goal that we may or may not find worthwhile to pursue, I think we can still benefit from using `Utf8JsonWriter` without using this approach.
 
@@ -128,6 +143,7 @@ Since in most cases OData WebAPI and OData Client serialize OData payloads from 
 - [How to use Utf8JsonWriter](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-use-dom-utf8jsonreader-utf8jsonwriter?pivots=dotnet-6-0#use-utf8jsonwriter)
 - [Serializer Programming Model](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/SerializerProgrammingModel.md)
 - [JsonSerializer reflection vs source generation](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation-modes?pivots=dotnet-6-0)
+- [How to use source generation in System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation-modes?pivots=dotnet-6-0)
 - [JsonSerializer custom converters](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-6-0)
 - [JsonSerializer threat model](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md)
 - [System.Text.Json roadmap](https://github.com/dotnet/runtime/tree/main/src/libraries/System.Text.Json/roadmap)
