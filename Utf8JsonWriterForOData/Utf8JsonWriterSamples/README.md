@@ -4,6 +4,8 @@ This experment compares writing an OData response using the `ODataMessageWriter`
 
 ## Running the experiments:
 
+*Note*: I added the OData libraries as direct project references to the solution. If you want to run this on your machine, you can update the location of the project references to match where you have stored the `Microsoft.OData.Core` project, or you can opt to get `Microsoft.OData.Core` from NuGet instead.
+
 ```
 dotnet run -c Release
 ```
@@ -61,7 +63,7 @@ The `Utf8JsonWriter` writes directly to a buffer. It takes an optional [`IBuffer
 
 If you pass a `Stream` as argument instead of an `IBufferWriter`, the `Utf8JsonWriter` defaults to using an [`ArrayBufferWriter`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraybufferwriter-1?view=net-6.0) which backs the buffer with a heap-allocated array.
 
-The `JsonSerializer` uses the internal [`PooledArrayBufferWriter`](https://source.dot.net/#Microsoft.AspNetCore.Mvc.ViewFeatures/PooledArrayBufferWriter.cs,75056dbb19cacf28) which rents buffers from the [`ArrayPool`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1?view=net-6.0) instead of allocating directly.
+The `JsonSerializer` uses the internal [`PooledArrayBufferWriter`](https://source.dot.net/#Microsoft.AspNetCore.Mvc.ViewFeatures/PooledArrayBufferWriter.cs,75056dbb19cacf28) which rents buffers from the [`ArrayPool`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1?view=net-6.0) instead of allocating directly. Why isn't the `PooledArrayBufferWriter` public?
 
 ### Async support
 
@@ -73,23 +75,26 @@ The `JsonSerializer.SerializeAsync()` method calls the writer inside a loop to w
 
 In my sample program I flushed after every 66th iteration of the `foreach customer` loop. This amounts to roughly 14K bytes buffered before every flush, which is close to `JsonSerializer`'s defaults. I initially flushed after every iteration and placed a breakpoint just before the flush call. Using the debugger to inspect the `Utf8JsonWriter` just before the flush showed that 222 bytes were pending (i.e. buffered), 222 * 66 ~ 14K.
 
+One of the key considerations we would have to make if we adopt the `Utf8JsonWriter` in OData is when to flush and it which level to abstract the flushing.
+I don't think it would be a good idea to expose this to the user.
+
 ### Validation
 
 The `Utf8JsonWriter` performs some validation by default to ensure you're writing compliant JSON. Things like writing a property or value at the wrong place will throw an exception. You can disable validation by passing a `JsonWriterOptions` options object to the constructor with the `SkipValidation` property set to `true`. This may improve performance.
 
-PS: This does not perform duplicate key validation.
+This does not seem to perform duplicate key validation.
 
 ### Keeping track of nested scope
 
-The `Utf8JsonWriter` uses a bit stack (`struct BitStack`) to keep track of the current scope and wether it's currently inside an object or array. The bitstack is simply a `long` variable (64 bits) where each bit position represents a nesting level. Each bit value represents whether or not we're in an object or array. When you call `writer.WriteStartObject()` or `writer.WriteStartArray()` it writes an open brace (`{`) or bracket (`[`) and "pushes" a 1 or 0 to the bit stack: i.e. it increments the depth counter and sets the bit at that position to 1 or 0. If the depth exceeds 64 levels, extra bits are pushed into an `int[]` array, each element of the array can hold 32 values/levels before a going to the next element.
+The `Utf8JsonWriter` uses a [bit stack (`struct BitStack`)](https://source.dot.net/#System.Text.Json/System/Text/Json/BitStack.cs,17cdc79d4f0fb216) to keep track of the current scope and wether it's currently inside an object or array. The bitstack is simply a `long` variable (64 bits) where each bit position represents a nesting level. Each bit value represents whether or not we're in an object or array. When you call `writer.WriteStartObject()` or `writer.WriteStartArray()` it writes an open brace (`{`) or bracket (`[`) and "pushes" a 1 or 0 to the bit stack: i.e. it increments the depth counter and sets the bit at that position to 1 or 0. If the depth exceeds 64 levels, extra bits are pushed into an `int[]` array, each element of the array can hold 32 values/levels before a going to the next element.
 
-In OData's `JsonWriter` There's an actual Scope (`sealed class Scope`) stack `Stack<Scope>`. The `Scope` class maintains state about a particular nesting level, such as the scope type (array, object or "JSON padding function scope" which is used for `JSONP` support). I think this implementation has unnecessary abstractions for such a small number of scope types and can be optimized away.
+In OData's `JsonWriter` There's an actual [Scope (`sealed class Scope`) stack `Stack<Scope>`](https://github.com/OData/odata.net/blob/0bc9105b0e0e53f7e4b666e5422a82bad27c6036/src/Microsoft.OData.Core/Json/JsonWriter.cs#L36). The `Scope` class maintains state about a particular nesting level, such as the scope type (array, object or "JSON padding function scope" which is used for `JSONP` support). I think this implementation has unnecessary abstractions for such a small number of scope types and can be optimized away.
 
-At a higher-level, the `JsonSerializer` uses a custom `WriterStack` struct with a backing array to keep track of the writer's state stored in a `WriterStackFrame` struct. `ODataWriterCore` uses a custom `ScopeStack` backed by `List` stored in `Scope` class that maintains more complex metadata about the current state of the writer.
+At a higher-level, the `JsonSerializer` uses a custom [`WriteStack`](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/WriteStack.cs,22f25e53efb8201e) struct with a backing array to keep track of the writer's state stored in a `WriterStackFrame` struct. `ODataWriterCore` uses a custom [`ScopeStack`](https://github.com/OData/odata.net/blob/0bc9105b0e0e53f7e4b666e5422a82bad27c6036/src/Microsoft.OData.Core/ODataWriterCore.cs#L3670) backed by `List` stored in `Scope` class that maintains more complex metadata about the current state of the writer. What are the practical considerations for making a non-trivial like `ScopeStack` and `Scope` structs?, [we've had a similar discussion regarding ODataUri](https://github.com/OData/odata.net/issues/2163). It may be worthwhile to investigate whether this would be beneficial for OData.
 
 ### Value conversion
 
-In OData core, the writers take `ODataResource`, `ODataResourceSet` and similer instances as input. An `ODataResource` has a collection of property items, each with a key and value. The values of properties are of type `object` so that they can reference any type of value. This means that primitive structs like `int` and `bool` will have to be boxed when CLR types are converted to `ODataResource` instances, and will have to be unboxed when the types are passed to the inner `JsonWriter` due to the casting to and from `object`. Here's an excerpt from [JsonWriterExtensions]() to illustrate this:
+In OData core, the writers take `ODataResource`, `ODataResourceSet` and similer instances as input. An `ODataResource` has a collection of property items, each with a key and value. The values of properties are of type `object` so that they can reference any type of value. This means that primitive structs like `int` and `bool` will have to be boxed when CLR types are converted to `ODataResource` instances, and will have to be unboxed when the types are passed to the inner `JsonWriter` due to the casting to and from `object`. Here's an excerpt from [JsonWriterExtensions](https://github.com/OData/odata.net/blob/0bc9105b0e0e53f7e4b666e5422a82bad27c6036/src/Microsoft.OData.Core/Json/JsonWriterExtensions.cs#L56) that illustrates this:
 
 ```c#
 void WritePrimitiveValue(this IJsonWriter, object value)
@@ -112,10 +117,11 @@ void WritePrimitiveValue(this IJsonWriter, object value)
 }
 ```
 
-## Future work:
-- Find out whether OData still supports JSONP?
-- Compare reflection-based vs source-generated converters in JsonSerializer
-- Compare converters vs non-converter scenarios
+JsonSerializer has [built-in converters for built-n types](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,d82783b32be68dc9), these converters are strongly typed, inheriting from `JsonConverter<T>` and ensure that basic value types can be serialized without boxing. See [this BooleanConverter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/Converters/Value/BooleanConverter.cs,e0a7a6193d86bbd5) for example. When serializing a POCO instance (e.g. customers), some metadata will be generated about the type, and converters for each of its properties will be used for during serialization. I think a ["composite" converter](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializerOptions.Converters.cs,96) is created dynamically for the type and cached, but I'm not 100% sure where this occurs in the code.
+
+This metadata is computed at runtime using reflection and cached. So the first call to `Serialize` might take longer than subsequent calls. Newer versions of JsonSerializer also allow you to opt for metadata serialization at compile time using source generators and eliminate the use of reflection. This can improve the serializer performance, reduce app size and memory footprint.
+
+Since in most cases OData WebAPI and OData Client serialize OData payloads from CLR classes, it might be worthwhile to evaluate whether generating strongly typed converters would considerably improve performance and reduce heap allocations instead of using `ODataResource`. We may also generate the converters from type definitions in the `IEdmModel`. This is a stretch goal that we may or may not find worthwhile to pursue, I think we can still benefit from using `Utf8JsonWriter` without using this approach.
 
 ## Resources
 - [Utf8JsonWriter](https://docs.microsoft.com/en-us/dotnet/api/system.text.json.utf8jsonwriter?view=net-6.0)
