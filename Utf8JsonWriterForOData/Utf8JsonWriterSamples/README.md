@@ -63,7 +63,7 @@ The `Utf8JsonWriter` writes directly to a buffer. It takes an optional [`IBuffer
 
 If you pass a `Stream` as argument instead of an `IBufferWriter`, the `Utf8JsonWriter` defaults to using an [`ArrayBufferWriter`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraybufferwriter-1?view=net-6.0) which backs the buffer with a heap-allocated array.
 
-The `JsonSerializer` uses the internal [`PooledArrayBufferWriter`](https://source.dot.net/#Microsoft.AspNetCore.Mvc.ViewFeatures/PooledArrayBufferWriter.cs,75056dbb19cacf28) which rents buffers from the [`ArrayPool`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1?view=net-6.0) instead of allocating directly. Why isn't the `PooledArrayBufferWriter` public?
+The `JsonSerializer` uses the internal [`PooledArrayBufferWriter`](https://source.dot.net/#Microsoft.AspNetCore.Mvc.ViewFeatures/PooledArrayBufferWriter.cs,75056dbb19cacf28) which rents buffers from the [`ArrayPool`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1?view=net-6.0) instead of allocating directly. Why isn't the `PooledArrayBufferWriter` public? [This thread explains why the PooledArrayBufferWriter has not been made public](https://github.com/dotnet/runtime/issues/33598). Basically the .NET Team is concerned about the buffer being misused leading to corruption of the global shared pool and other extremely undesirable errors/behaviour.
 
 ### Async support
 
@@ -145,5 +145,6 @@ Since in most cases OData WebAPI and OData Client serialize OData payloads from 
 - [JsonSerializer reflection vs source generation](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation-modes?pivots=dotnet-6-0)
 - [How to use source generation in System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation-modes?pivots=dotnet-6-0)
 - [JsonSerializer custom converters](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-6-0)
+- [Discussion thread on making PooledArrayBufferWriter public](https://github.com/dotnet/runtime/issues/33598)
 - [JsonSerializer threat model](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md)
 - [System.Text.Json roadmap](https://github.com/dotnet/runtime/tree/main/src/libraries/System.Text.Json/roadmap)
