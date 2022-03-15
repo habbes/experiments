@@ -148,3 +148,4 @@ Since in most cases OData WebAPI and OData Client serialize OData payloads from 
 - [Discussion thread on making PooledArrayBufferWriter public](https://github.com/dotnet/runtime/issues/33598)
 - [JsonSerializer threat model](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md)
 - [System.Text.Json roadmap](https://github.com/dotnet/runtime/tree/main/src/libraries/System.Text.Json/roadmap)
+- [Proposal to use SIMD in .NET JSON API](https://github.com/dotnet/runtime/issues/28937)
