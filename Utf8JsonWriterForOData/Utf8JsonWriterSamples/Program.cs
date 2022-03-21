@@ -21,7 +21,7 @@ namespace Utf8JsonWriterSamples
                 model.MarkAsImmutable();
             }
 
-            var data = CustomerDataSet.GetCustomers(5000);
+            var data = CustomerDataSet.GetCustomers(1);
 
             ServerCollection<IEnumerable<Customer>> servers = new(data, 8080);
 
