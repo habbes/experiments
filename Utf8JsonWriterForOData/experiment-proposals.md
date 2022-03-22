@@ -105,7 +105,7 @@ Another approach is to write the chunks directly to the underlying stream, bypas
 
 - `ODataWriter.WriteStart(new ODataStreamPropertyInfo { Name = "MyProperty", ..., })`:
     - calls `IJsonWriter.WriteName("MyProperty")`
-    - This eventually calls `utf8Writer.WritePropertyName("MyProperty")
+    - This eventually calls `utf8Writer.WritePropertyName("MyProperty")`
     - It writes the property name to the buffer then writes the property separator `:`
     - The `Utf8JsonWriter` remembers that we're currently on `PropertyName` token, inside an object.
 - `ODataWriter.CreateBinaryWriteStream`
