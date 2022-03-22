@@ -123,6 +123,14 @@ It's important to note that after these steps, `Utf8JsonWriter` will still think
 
 ### Notes on providing a TextWriter for direct text writing
 
+`JsonWriter` implements a `StartTextWriterValueScope` method which returns a `TextWriter`. This is conceptually similar to `StartStreamValueScope` except that it lets the user write text instead of data. It poses a similar challenge as `StartStreamValueScope` to implement with `Utf8JsonWriter` since it lets the user stream the data one chunk at a time instead of writing the whole value in a single method call. [Here's a test that demonstrates how it's used](https://github.com/OData/odata.net/blob/6643a9ef12388b07a46f3b460576e215ceb4d9b8/test/FunctionalTests/Microsoft.OData.Core.Tests/JsonLight/ODataJsonLightOutputContextApiTests.cs#L272).
+
+To implement this we can follow the same pattern proposed for `StartStreamValueScope()`, but take into account the following key differences:
+- The `TextWriter` returned by `JsonWriter` is an `ODataJsonTextWriter`. It doesn't convert the data to base64.
+- It writes the plain text directly to the underlying text writer, but it escapes the text
+- It uses `ODataStringEscapeOption.EscapeOnlyControls` instead of `EscapeNonAscii`. I'm not sure why it uses a different escaping mode, but we should honor it in our implementation. I don't know if `Utf8JsonWriter` provides a `TextEncoder` that implements the same escaping mechanisms.
+- To implement this, we can provide a text writer whose write methods escape the text, utf8 transcode the text then write the bytes to the underlying stream
+
 
 
 ### Notes on Encoding and issues with TextWriter coupling
