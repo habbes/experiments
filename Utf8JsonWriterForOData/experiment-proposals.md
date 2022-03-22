@@ -4,6 +4,12 @@ This is a list of experiments that I think we should explore and evaluate to hel
 
 The experiments are listed in ascending order of the perceived difficulty in implementing. The potential performance gains are also expected to increase. We should assess both the performance again as well the amount of effort it would take to implement that proposal as well as any thing we'd have to sacrifice (e.g. features/flexibility, etc.). Some proposals may require breaking changes to the public API.
 
+## 0. Evaluation
+
+To evaluate the performance gains from these experiments, we can use the performance tests in `OData.net` repo. However, those tests are not suitable for evaluating async writers because they don't simulate concurrent requests. In the existing test, async writers perform worse than the sync versions since they just measure serializing a single payload at a time. Furthermore, the service tests that simulate sending requests to an actual server are broken. We should add tests to fill these gaps in order to properly evaluate performance in realistic scenarios:
+- Tests that measure latency and throughput where requests are handled concurrently
+- Tests that simulate requests between a client and server
+
 ## 1. Wrap the synchronous writer in a `BufferedStream`
 
 The `ODataJsonLightOutputContext` wraps the output `Stream` in an `AsyncBufferedStream` to provide some buffering when in async mode. But in synchronous mode, the stream is not buffered. In a [recent PR](https://github.com/OData/odata.net/pull/2222) the custom `AsyncBufferedStream` class was replaced with the standard library's new `BufferedStream` which resulted in a peformance increase. It is not clear to me why in the synchronous mode the `BufferedStream` is not buffered.
