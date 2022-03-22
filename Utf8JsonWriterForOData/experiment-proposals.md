@@ -92,6 +92,10 @@ I would propose the we re-evaluate whether we should continue to support JSONP i
 
 To implement this in `Utf8ODataJsonWriter` would be a bit tricky since `Utf8JsonWriter` does not provide a way to write a JSON value one chunk at a time, and it doesn't expose methods to write to the stream directly. A naive approach would be to return a memory stream, then once the `EndStreamValueScope` is called, we convert the bytes to a base64 string and call `WriteRawValue()` in one chunk. This would be problematic if the data to write is too large or inefficient to keep in memory all at once. Another approach is to write the chunks directly to the underlying stream, bypassing `Utf8JsonWriter`. But if `Utf8JsonWriter` had written a property name prior to the stream scope, it would expect to write a value next, if we write a property next, maybe it would send `Utf8JsonWriter` in an invalid state (TODO: verify what happens when you write invalid JSON after disabling validation).
 
+### Notes on providing a TextWriter for direct text writing
+
+TODO
+
 ### Notes on Encoding and issues with TextWriter coupling
 
 `Utf8JsonWriter` writes utf-8 encoded json bytes directly to the stream when flushed. C# `char` are 16bit utf-16 characters, so writing strings or chars directly to the stream would not be compatible with `Utf8JsonWriter`. For workarounds that require writing directly to the Stream instead of passing through `Utf8JsonWriter`, we'd have to ensure the values we write pass through a `Utf8` encoder. [`Utf8Encoding`](https://docs.microsoft.com/en-us/dotnet/api/system.text.utf8encoding.getbytes?view=net-6.0) is a utility class that provides methods for encoding to and from UTF-8.
