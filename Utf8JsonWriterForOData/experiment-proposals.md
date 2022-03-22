@@ -76,6 +76,7 @@ IJsonWriter | Utf8JsonWriter
 `JsonWriter` escapes property names and all string values written with `WriteValue(string value)` and `WriteName(string name)`. Values written with `WriteRawValue(string value)` or most string values from conversions of other primitive types. However, when in `Ieee754Compatible` mode, where `long`s and `double`s are quoted, they are also escaped.
 
 By default, OData uses the `ODataStringEscapeOption.EscapeNonAscii` which escapes all control characters (like `\n`) and non-ascii characters. `Uf8JsonWriter` allows you to specify a `TextEncoder` which will handle the escaping. When none is provided, it will use a default `JavaScriptEncoder` which also escapes non-ascii chars(outside basic-latin Unicode range). So we can rely on `Utf8JsonWriter`'s escaping instead of using our own (much less efficient) implementation.
+
 ### Notes on number formatting
 
 When `JsonWriter` writes numerical values, it first converts them to string using `value.ToString(CultureInfo.InvariantCulture)`. `Utf8JsonWriter` uses `Utf8Formatter.TryFormat` to try and convert the values. I'm not sure if the two are always equivalent, especially for decimals. We should verify that the two formatting mechanisms produce the same results, otherwise we can convert to string as done in `JsonWriter` and write that string using `WriteRawValue()`.
@@ -96,11 +97,33 @@ I would propose the we re-evaluate whether we should continue to support JSONP i
 
 `JsonWriter` implements a `StartStreamValueScope` which returns a `Stream`. This allows the caller to write bytes directly to the stream, and then call `EndStreamValueScope` once done. `JsonWriter` encloses the data written to the stream within quotes. The data is actually treated as a binary string. The stream returned by `JsonWriter` is an `ODataBinaryWriterStream`. This class wraps the output `TextWriter` and overrides the `Stream.Write` methods to convert the bytes to base64-encoded string before writing them to the `TextWriter`.
 
-To implement this in `Utf8ODataJsonWriter` would be a bit tricky since `Utf8JsonWriter` does not provide a way to write a JSON value one chunk at a time, and it doesn't expose methods to write to the stream directly. A naive approach would be to return a memory stream, then once the `EndStreamValueScope` is called, we convert the bytes to a base64 string and call `WriteRawValue()` in one chunk. This would be problematic if the data to write is too large or inefficient to keep in memory all at once. Another approach is to write the chunks directly to the underlying stream, bypassing `Utf8JsonWriter`. But if `Utf8JsonWriter` had written a property name prior to the stream scope, it would expect to write a value next, if we write a property next, maybe it would send `Utf8JsonWriter` in an invalid state (TODO: verify what happens when you write invalid JSON after disabling validation).
+This [test](https://github.com/OData/odata.net/blob/6643a9ef12388b07a46f3b460576e215ceb4d9b8/test/FunctionalTests/Microsoft.OData.Core.Tests/JsonLight/ODataJsonLightOutputContextApiTests.cs#L285) demonstrate how this feature can be applied to write binary content for the value of a stream property.
+
+To implement this in `Utf8ODataJsonWriter` would be a bit tricky since `Utf8JsonWriter` does not provide a way to write a JSON value one chunk at a time, and it doesn't expose methods to write to the stream directly. A naive approach would be to return a memory stream, then once the `EndStreamValueScope` is called, we convert the bytes to a base64 string and call `WriteRawValue()` in one chunk. This would be problematic if the data to write is too large or inefficient to keep in memory all at once.
+
+Another approach is to write the chunks directly to the underlying stream, bypassing `Utf8JsonWriter`. But if `Utf8JsonWriter` had written a property name prior to the stream scope, it would expect to write a value next, if we write a property next, maybe it would send `Utf8JsonWriter` in an invalid state. If we disable `Utf8JsonWriter` validation, this would not throw an error, but I don't know if it would lead to unexpected behaviour down the line as a result of the `Utf8JsonWriter` being in an invalid state. Here are illustrative steps to make this process clearer:
+
+- `ODataWriter.WriteStart(new ODataStreamPropertyInfo { Name = "MyProperty", ..., })`:
+    - calls `IJsonWriter.WriteName("MyProperty")`
+    - This eventually calls `utf8Writer.WritePropertyName("MyProperty")
+    - It writes the property name to the buffer then writes the property separator `:`
+    - The `Utf8JsonWriter` remembers that we're currently on `PropertyName` token, inside an object.
+- `ODataWriter.CreateBinaryWriteStream`
+    - calls `IJsonWriter.StartStreamValueScope()`
+    - first we call `utf8JsonWriter.Flush()` to ensure its data is written to the underlying stream before we write to the stream directly
+    - write the opening `"` quote as a utf8 byte to the stream (`Utf8JsonWriter` is not aware of this write)
+    - create a stream wrapper similar to `ODataBinaryWriterStream` that encodes its bytes to base64 string, but then writes them as utf8 encoded bytes to the underlying stream
+    - return the stream to the caller
+- `ODataWriter.WriteEnd()`
+    - calls `IJsonWriter.EndStreamValueScope()`
+    - writes the closing quote `"` as utf8 byte to the stream
+    - flushes `ODataBinaryWriterStream`'s data to the underlying stream to ensure future `Utf8JsonWriter` writes are added to the stream after
+
+It's important to note that after these steps, `Utf8JsonWriter` will still think it has just written a property name but no value. So it expects the next write to be the value of the "MyProperty" property. However, as far as `ODataWriter` is concerned, we've just written a value (the stream value). So it's valid to call `ODataWriter.Start(new ODataProperty ...)` to write a new property, which eventually calls `Utf8JsonWriter.WritePropertyName`. Writing a property name directly after another is invalid. We should verify that this won't cause unexpected results if we turn of validation.
 
 ### Notes on providing a TextWriter for direct text writing
 
-TODO
+
 
 ### Notes on Encoding and issues with TextWriter coupling
 
