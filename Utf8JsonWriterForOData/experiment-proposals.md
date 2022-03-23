@@ -4,6 +4,8 @@ This is a list of experiments that I think we should explore and evaluate to hel
 
 The experiments are listed in ascending order of the perceived difficulty in implementing. The potential performance gains are also expected to increase. We should assess both the performance again as well the amount of effort it would take to implement that proposal as well as any thing we'd have to sacrifice (e.g. features/flexibility, etc.). Some proposals may require breaking changes to the public API.
 
+The end goal is to considerally improve OData writer's performance (CPU usage, memory, latency, throughput) without sacrificing the correctness of the results with respect to OData specifications (e.g. structure of the payload, annotations, validation with respect to the model where applicable, etc.).
+
 ## 0. Evaluation
 
 To evaluate the performance gains from these experiments, we can use the performance tests in `OData.net` repo. However, those tests are not suitable for evaluating async writers because they don't simulate concurrent requests. In the existing test, async writers perform worse than the sync versions since they just measure serializing a single payload at a time. Furthermore, the service tests that simulate sending requests to an actual server are broken. We should add tests to fill these gaps in order to properly evaluate performance in realistic scenarios:
@@ -314,7 +316,7 @@ This is an evolution of the previous proposal and assumes that some `ODataUtf8Js
 
 Maybe using [ValueTask](https://devblogs.microsoft.com/dotnet/understanding-the-whys-whats-and-whens-of-valuetask/) would reduce some of the overhead. But I think we can go a step further.
 
-We can take inspiration from the design of `JsonSerializer.SerializeAsync`. It calls a synchronous `Write***()` method inside a loop which writes to the `IBufferWriter`'s memory. After each iteration it checks how much data has been buffered, and if it exceeds a threshold, then it calls `bufferWriter.WriteToStreamAsync()` and clear the buffer. Similarly, we can remove the flush calls from `ODataUtf8JsonWriter` and keep it's API synchronous. We would still have to keep the `Stream` and `TextWriter` related methods async since they write directly to the stream. But the most common cases will be synchronous. Specifically, we would remove the `FlushIfBufferThresholdReached` method. Then it would be the responsibility of the caller to flush the data to the stream.
+We can take inspiration from the design of [`JsonSerializer.SerializeAsync`](https://source.dot.net/#System.Text.Json/System/Text/Json/Serialization/JsonSerializer.Write.Stream.cs,246). It calls a synchronous `Write***()` method inside a loop which writes to the `IBufferWriter`'s memory. After each iteration it checks how much data has been buffered, and if it exceeds a threshold, then it calls `bufferWriter.WriteToStreamAsync()` and clear the buffer. Similarly, we can remove the flush calls from `ODataUtf8JsonWriter` and keep it's API synchronous. We would still have to keep the `Stream` and `TextWriter` related methods async since they write directly to the stream. But the most common cases will be synchronous. Specifically, we would remove the `FlushIfBufferThresholdReached` method. Then it would be the responsibility of the caller to flush the data to the stream.
 
 `ODataWriter`'s design is not as simple as `JsonSerializer`, since we expose granualar `WriteStart` and `WriteEnd` methods. So we have to think more carefully about where and when flush. Conceptually, we'd be moving the `FlushIfBufferThresholdReached` method to upper levels of the call stack. But where to?
 
@@ -340,7 +342,24 @@ class ODataJsonLightWriter
 }
 ```
 
-The danger with buffering too infrequently is that we can exceed the memory buffer and have to resize it, technically it may also be possible to run out of memory if we write an object with an unreasonable number of properties, or array with too many elements, or if we write an excessively long string value. I'm not sure if `Utf8JsonWriter` has built-in guards against such extremes.
+The danger with buffering too infrequently is that we can exceed the memory buffer and have to resize it, technically it may also be possible to run out of memory if we write an object with an unreasonable number of properties, or array with too many elements, or if we write an excessively long string value. I'm not sure if `Utf8JsonWriter` has [built-in guards against such extremes](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md).
+
+## 3. Using a unified `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs
+
+The proposed `Utf8ODataJsonWriter` implementation requires special handling in the `StartStreamValueScope()` and `StartTextWriterValueScope()` methods, namely that we have to bypass the `Utf8JsonWriter` and write directly to the stream. This presents the following drawbacks:
+- We have to flush `Utf8JsonWriter` to ensure the data from the return `TextWriter` or `Stream` is not written to the output stream in the wrong order
+- We have to do manual UTF8 transcoding
+- We have to write single quote characters (`"`) directly to the stream, which may be inefficient
+- We have to make each of these methods async before of the direct stream writes and flushes. This also makes the API inconsistent due to some methods being only sync and some being async
+
+I think we can address some of these challenges by controlling the `IBufferWriter<byte>` directly. Instead of passing a `Stream` to `Utf8JsonWriter`, we pass an `IBufferWrite<byte>` directly, either the default `ArrayBufferWriter<byte>` or a custom clone of `PooledArrayBufferWriter<byte>`. The `IBufferWrite<T>` will wrapt the output `Stream` instead.
+
+Now instead of writing the enclosing quotes to the stream, we write them to the `IBufferWrite<byte>`'s memory synchronously. We also don't have to force a flush for correctness (unless it's beneficial for performance, e.g. to avoid resizes).
+
+The custom `ODataBinaryStreamWriter` and `ODataJsonTextWriter` will have to write the `IBufferWrite<byte>` instead of the `Stream`. This will be a non-trivial refactor because working with an `IBufferWriter<T>` is a significantly different programming model from writing to a `Stream` directly. `Utf8JsonWriter.Flush()` also behaves differently when you pass a stream to it. Careful attention to detail would be required to ensure overall correctness. Here's a list of some of the new challenges that this approach presents:
+- 
+
+
 
 
 
