@@ -121,6 +121,10 @@ Another approach is to write the chunks directly to the underlying stream, bypas
 
 It's important to note that after these steps, `Utf8JsonWriter` will still think it has just written a property name but no value. So it expects the next write to be the value of the "MyProperty" property. However, as far as `ODataWriter` is concerned, we've just written a value (the stream value). So it's valid to call `ODataWriter.Start(new ODataProperty ...)` to write a new property, which eventually calls `Utf8JsonWriter.WritePropertyName`. Writing a property name directly after another is invalid. We should verify that this won't cause unexpected results if we turn of validation.
 
+This would work if we're writing the stream data as the value of a property. But what if we're writing the value as an item in the array? `Utf8JsonWriter` sets a flag after writing values to indicate that the next item should write a list separator first. If `Utf8JsonWriter` is not aware of the write we've just made, it would not add the list separator for the next item, this can result in invalid JSON. **TODO**: Find workaround for this, maybe `Utf8JsonWriter.WriteRawValue("")` would work, the idea is that it would output nothing, but move the `Utf8JsonWriter` in the correct state to account for the stream data that has just been written.
+
+Note that the `ODataWriter.CreateBinaryWriteStream`'s implementation doesn't actually return the stream from `IJsonStreamWriter.StartStreamValueScope` directly, it wraps it inside an `ODataBinaryStreamWriter` stream which adds some buffering logic. I don't think this should affect the implementation of `IJsonWriter.StartStreamValueScope()`, but I think it's worth noting. I also think that the implementation of `ODataBinaryStreamWriter` has a lot of room for optimizations that we should consider (e.g. avoiding excessive LINQ usage, avoiding allocation of temporary arrays, increasing the buffer size/min bytes per write event, using the array pool, etc.)
+
 ### Notes on providing a TextWriter for direct text writing
 
 `JsonWriter` implements a `StartTextWriterValueScope` method which returns a `TextWriter`. This is conceptually similar to `StartStreamValueScope` except that it lets the user write text instead of data. It poses a similar challenge as `StartStreamValueScope` to implement with `Utf8JsonWriter` since it lets the user stream the data one chunk at a time instead of writing the whole value in a single method call. [Here's a test that demonstrates how it's used](https://github.com/OData/odata.net/blob/6643a9ef12388b07a46f3b460576e215ceb4d9b8/test/FunctionalTests/Microsoft.OData.Core.Tests/JsonLight/ODataJsonLightOutputContextApiTests.cs#L272).
@@ -135,10 +139,163 @@ To implement this we can follow the same pattern proposed for `StartStreamValueS
 
 ### Notes on Encoding and issues with TextWriter coupling
 
-`Utf8JsonWriter` writes utf-8 encoded json bytes directly to the stream when flushed. C# `char` are 16bit utf-16 characters, so writing strings or chars directly to the stream would not be compatible with `Utf8JsonWriter`. For workarounds that require writing directly to the Stream instead of passing through `Utf8JsonWriter`, we'd have to ensure the values we write pass through a `Utf8` encoder. [`Utf8Encoding`](https://docs.microsoft.com/en-us/dotnet/api/system.text.utf8encoding.getbytes?view=net-6.0) is a utility class that provides methods for encoding to and from UTF-8.
+`Utf8JsonWriter` writes UTF-8 encoded json bytes directly to the stream when flushed. C# `char` are 16bit utf-16 characters. `Utf8JsonWriter` transcodes `string` and `char` inputs to UTF-8 first writing them. So writing strings or chars directly to the stream would not be compatible with `Utf8JsonWriter`. For workarounds that require writing directly to the Stream instead of passing through `Utf8JsonWriter`, we'd have to ensure the values we write pass through a `Utf8` encoder. [`Utf8Encoding`](https://docs.microsoft.com/en-us/dotnet/api/system.text.utf8encoding.getbytes?view=net-6.0) is a utility class that provides methods for encoding to and from UTF-8.
 
 This poses a challenge for supporting a constructor that passes `TextWriter` directly. If the caller passes a stream to `Utf8ODataJsonWriter`, they expect the output to be written through that `TextWriter`. Since we don't have access to the `TextWriter`'s underlying stream, we can create a new `MemoryStream` and pass that to `Utf8JsonWriter`. Then we flush the `Utf8JsonWriter`, we write the data in the stream to the output `TextWriter`. But there's a problem, `TextWriter` does not expose methods for writing bytes directly, the `TextWriter` expects strings/chars as input or values that can be converted to strings. Remember that C# string/chars are UTF-16-based. So in order to move data from the stream to the `TextWriter` we'd have to decode the UTF8 bytes from the stream to strings first.
 
-`JsonWriter` doesn't control the encoding of the output `TextWriter` it receives. Currently, the encoding is being determined by `ODataJsonFormat.DetectPayloadKind()` which returns an encoding based on the content type charset. The default encoding is UTF8, and this probably what's used in most (if not all) cases in production. If the `TextWriter`'s encoding is UTF8, then that also means it has to encode the data written to it from UTF16 to UTF8. This means we'd have an unnecessary utf8->utf16->utf8 encoding flows, which is wasteful and would degrade performance.
+`JsonWriter` doesn't control the encoding of the output `TextWriter` it receives. Currently, the encoding is being determined by `ODataJsonFormat.DetectPayloadKind()` which returns an encoding based on the content type charset. The default encoding is UTF8, and this probably what's used in most (if not all) cases in production. If the `TextWriter`'s encoding is UTF8, then that also means it has to transcode the data written to it from UTF16 to UTF8. This means we'd be transcoding from utf16->utf8->utf16->utf8, which is wasteful and would degrade performance.
 
-If we can ensure that for JSON payloads, this is the only encoding that is supported by OData, then that would make life easier, and would corroborate the case for decoupling `IJsonWriter` from `TextWriter`
+If we can ensure that for JSON payloads, this is the only encoding that is supported by OData, then that would make life easier, and would contribute to the case for passing a `Stream` to `IJsonWriter` instead of a `TextWriter`. If we need to support multiple output encoding, maybe we could a layer that pipes the stream passed to `IJsonWriter` through a UTF8-To-TargetEncoding transcoder.
+
+### Pseudocode
+
+Here's sample pseudocode for what the `Utf8ODataJsonWriter` could look like:
+
+```c#
+class Utf8ODataJsonWriter: IJsonStreamWriter, IJsonStreamWriterAsync, IDisposable {
+    private Stream outputStream;
+    private Utf8JsonWriter writer;
+
+    public Utf8ODataJsonWriter(Stream outputStream, bool isIeee754Compatible)
+    {
+        this.outputStream = outputStream;
+        this.writer = new Utf8JsonWriter(outputStrean, new JsonWriterOptions { SkipValidation = true });
+    }
+
+    public void WriteName(string name)
+    {
+        writer.WritePropertyName(name);
+        FlushIfBufferThresholdReached();
+    }
+
+    public void WriteValue(bool value)
+    {
+        writer.WriteBooleanValue(value);
+        FlushIfBufferThresholdReached();
+    }
+
+    private void FlushIfBufferThresholdReached()
+    {
+        if (writer.BytesPending > 0.9f * MaxBufferSize)
+        {
+            writer.Flush();
+        }
+    }
+
+    public void StartObjectScope()
+    {
+        writer.WriteStartObject();
+        FlushIfBufferThresholdReached();
+    }
+
+    public void EndObjectScope()
+    {
+        write.WriteEndObject();
+        FlushIfBufferThresholdReached();
+    }
+
+    public void StartArrayScope()
+    {
+        writer.WriteStartArray();
+        FlushIfBufferThresholdReached();
+    }
+
+    public void EndArrayScope()
+    {
+        writer.WriteEndArray();
+        FlushIfBufferThresholdReached();
+    }
+
+    public void WriteFunctionPaddingName(string functionName)
+    {
+        // write directly to stream
+        outputStream.Write(Utf8Encode(functionName));
+    }
+
+    public void StartFunctionPaddingScope()
+    {
+        outputStream.Write(Utf8Encode('(')));
+    }
+
+    public void EndFunctionPaddingScope()
+    {
+        outputStream.Write(Utf8Encode(')')));
+    }
+
+    public Stream StartStreamValueScope()
+    {
+        // flush pending contents in writer to ensure
+        // we don't interleave writes
+        writer.Flush();
+        outputStream.Write(UtfEncode('"'));
+        this.binaryValueStream = new ODataUtf8BinaryWriterStream(outputStream);
+        return this.binaryValueStream;
+    }
+
+    public Stream EndStreamValueScope()
+    {
+        this.binaryValueStream.Flush();
+        // this should not dispose the underlying stream
+        this.binaryValueStream.Dispose();
+        this.binaryValueStream = null;
+        this.outputStream.Write(Utf8Encode('"'));
+    }
+
+    public TextWriter StartTextWriterValueScope(string contentType)
+    {
+        writer.Flush();
+        this.currentContentType = contentType;
+        if (!IsWritingJson) // thich checks whether the contentType is non-json
+        {
+            // if it's non-json, then treat the contents to be written as
+            // as a string value to escape
+            outputStream.Write(Utf8Encode('"'));
+            this.textWriter = ODataUtf8JsonTextWriter(outputStream);
+            return this.textWriter;
+        }
+
+        // if the content type is json, it's the responsibility
+        // of the caller to write valid JSON and escape it
+        // this writer should not dispose the underlying stream
+        // I think a simple implementation would be:
+        // new StreamWriter(stream, encoding: Encoding.UTF8, leaveOpen: true)
+        this.textWriter = new ODataUtf8TextWriter(outputStream);
+        return writer;
+    }
+
+    public TextWriter EndTextWriterValueScope()
+    {
+        this.textWriter.Flush();
+        this.textWriter.Dispose();
+        this.textWriter = null;
+        if (!IsWritingJson)
+        {
+            outputStream.Write(Utf8Encode('"'));
+        }
+    }
+
+    // ASYNC
+    public async Task WriteNameAsync(string name)
+    {
+        writer.WritePropertyName(name);
+        await FlushIfBufferThresholdReachedAsync();
+    }
+
+    public async Task WriteValue(bool value)
+    {
+        writer.WriteBooleanValue(value);
+        await FlushIfBufferThresholdReachedAsync();
+    }
+
+    // since we expect this not to flush most of the times
+    // maybe it's a good candidate to use ValueTask:
+    // https://devblogs.microsoft.com/dotnet/understanding-the-whys-whats-and-whens-of-valuetask/
+    private Task FlushIfBufferThresholdReachedAsync()
+    {
+        if (writer.BytesPending > 0.9f * MaxBufferSize)
+        {
+            await writer.FlushAsync();
+        }
+    }
+}
+```
