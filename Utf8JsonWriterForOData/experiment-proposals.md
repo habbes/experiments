@@ -357,6 +357,7 @@ I think we can address some of these challenges by controlling the `IBufferWrite
 Now instead of writing the enclosing quotes to the stream, we write them to the `IBufferWrite<byte>`'s memory synchronously. We also don't have to force a flush for correctness (unless it's beneficial for performance, e.g. to avoid resizes).
 
 The custom `ODataBinaryStreamWriter` and `ODataJsonTextWriter` will have to write the `IBufferWrite<byte>` instead of the `Stream`. This will be a non-trivial refactor because working with an `IBufferWriter<T>` is a significantly different programming model from writing to a `Stream` directly. `Utf8JsonWriter.Flush()` also behaves differently when you pass a stream to it. Careful attention to detail would be required to ensure overall correctness. Here's a list of some of the new challenges that this approach presents:
+
 - 
 
 
