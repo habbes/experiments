@@ -6,6 +6,14 @@ The experiments are listed in ascending order of the perceived difficulty in imp
 
 The end goal is to considerally improve OData writer's performance (CPU usage, memory, latency, throughput) without sacrificing the correctness of the results with respect to OData specifications (e.g. structure of the payload, annotations, validation with respect to the model where applicable, etc.).
 
+Contents:
+- [0. Evaluation](#0-evaluation)
+- [1. Wrap the synchronous writer in a `BufferedStream`](#1-wrap-the-synchronous-writer-in-a-bufferedstream)
+- [2. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection](#2-provide-a-custom-ijsonwriter-using-utf8jsonwriter-via-depdency-injection)
+- [3. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs](#3-using-a-shared-ibufferwriterbyte-for-both-utf8jsonwriter-and-streamtextwriter-apis)
+- [4. Moonshot: Generate strongly-typed converters from model to avoid boxing](#4-moonshot-generate-strongly-typed-converters-from-model-to-avoid-boxing)
+- [5. Moonshot: Generate strongly-typed model-based serializers at compile time](#5-moonshot-generate-strongly-type-model-based-serializers-at-compile-time)
+
 ## 0. Evaluation
 
 To evaluate the performance gains from these experiments, we can use the performance tests in `OData.net` repo. However, those tests are not suitable for evaluating async writers because they don't simulate concurrent requests. In the existing test, async writers perform worse than the sync versions since they just measure serializing a single payload at a time. Furthermore, the service tests that simulate sending requests to an actual server are broken. We should add tests to fill these gaps in order to properly evaluate performance in realistic scenarios:
@@ -20,7 +28,7 @@ One quick thing to try would be to wrap the sync `Stream` in a `BufferedStream` 
 
 I am also curious to know what the performance for the async scenario would be without the `BufferedStream`.
 
-## 2. Implement a custom `IJsonWriter` using `Utf8JsonWriter` and inject it via dependency injection
+## 2. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection
 
 The OData writer allows injecting a custom `IJsonWriter` implementation. To do this, we have to create a class that implements `IJsonWriterFactory` then inject that in the service container. To provide dependency injection capabilities the `IODataRequestMessage`/`IODataResponseMessage` should also implement `IContainerProvider`. This means it should expose an `Container` property which is the actual `IServiceProvider`.
 
@@ -153,7 +161,7 @@ If we can ensure that for JSON payloads, this is the only encoding that is suppo
 
 ### Notes on buffering
 
-`Utf8JsonWriter` writes all data to a buffer and only writes to the stream when flushed. `Utf8JsonWriter` either takes a `Stream` as input, or an `IBufferWriter<byte>`. `IBufferWriter<T>` exposes methods to retrive the memory to write to as a `Span<T>` or `Memory<T>`. Then you write directly to those memory blocks and notify the `IBufferWriter<T>` that you've written data by calling `Advance()`. When you pass a `Stream` to the `Utf8JsonWriter` it will create an [`ArrayBufferWriter<byte>`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraybufferwriter-1?view=net-6.0) wrapper around the stream. `ArrayBufferWriter<T>` is built-in implementation of `IBufferWriter<T>` that allocates an array and uses it as the backing for the `IBufferWriter.GetMemory/GetSpan` methods. The array will be resized if more memory is requested than available. `JsonSerializer` uses a more efficient implementation of `IBufferWriter<T>` calls [`PooledArrayBufferWriter<byte>`](https://source.dot.net/#Microsoft.AspNetCore.Mvc.ViewFeatures/PooledArrayBufferWriter.cs,75056dbb19cacf28). This implementation does not allocate arrays directly, it rents them from the share `ArrayPool`, therefore cutting down on memory allocations by re-cycling arrays from the pool. This class is however internal and not exposed publicly. You can find more information about the decision to keep it internal on [this thread](https://github.com/dotnet/runtime/issues/33598). If the proposed implementations of `Utf8ODataJsonWriter` seem promising, we could consider also create a clone implementation of `PooledArrayBufferWriter<T>` and using it instead of the default.
+`Utf8JsonWriter` writes all data to a buffer and only writes to the stream when flushed. `Utf8JsonWriter` either takes a `Stream` as input, or an `IBufferWriter<byte>`. `IBufferWriter<T>` exposes methods to retrive the memory to write to as a `Span<T>` or `Memory<T>`. Then you write directly to those memory blocks and notify the `IBufferWriter<T>` that you've written data by calling `Advance()`. When you pass a `Stream` to the `Utf8JsonWriter` it will create an [`ArrayBufferWriter<byte>`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.arraybufferwriter-1?view=net-6.0) wrapper around the stream. `ArrayBufferWriter<T>` is built-in implementation of `IBufferWriter<T>` that allocates an array and uses it as the backing for the `IBufferWriter.GetMemory/GetSpan` methods. The array will be resized if more memory is requested than available. `JsonSerializer` uses a more efficient implementation of `IBufferWriter<T>` calls [`PooledByteBufferWriter`](https://source.dot.net/#System.Text.Json/PooledByteBufferWriter.cs,d0112696348c0f6d,references). This implementation does not allocate arrays directly, it rents them from the share `ArrayPool`, therefore cutting down on memory allocations by re-cycling arrays from the pool. This class is however internal and not exposed publicly. You can find more information about the decision to keep it internal on [this thread](https://github.com/dotnet/runtime/issues/33598). If the proposed implementations of `Utf8ODataJsonWriter` seem promising, we could consider also create a clone implementation of `PooledByteBufferWriter` and using it instead of the default.
 
 ### Pseudocode
 
@@ -322,7 +330,7 @@ We can take inspiration from the design of [`JsonSerializer.SerializeAsync`](htt
 
 A naive approach would be to remove that method from the `ODataMessageWriter`'s call stack altogether, i.e. the core writer would not be concerned about when to flush (except for cases where we flush the text writer). This would simplify the design of `ODataMessageWriter` (it could even make most async methods obsolete). However, it will push the complexity of handling the flushing decision to the public API. The `ODataSerializer` in WebAPI and the quivalent serializer in the Client would have to be refactored to flush. Users who use OData core directly would have to make this decision themselves. All-in-all this would introduce an extra layer of complexity to library consumers, in addition to being a major breaking change. It's better for us to handle this complexity internally.
 
-So the ideal approach is to deal with this complexity internally and keep the public API of `ODataMessageWriter` and `ODataWriter` intact. `ODataJsonLightWriter` could implement and call `FlushIfBufferThresholdReached` at key "checkpoints" where it may have written a sizeable chunk of data (this also means that `IJsonWriter` would have to expose property to check buffered bytes). For example, it may not make much sense to call that method after calling `IJsonWriter.StartObjectScope()` since that only writes a single character. But it may make sense to call it after writing propert+value pair, `IJsonWriter.EndObjectScope()` or `EndArrayScope()` since it's likely more data would have been written at this point. Find the optimal spots may require running a number of tests with different variations and comparing results. For the purpose of this experiment, we can add the `FlushIfBufferThresholdReached()` call to the `End***` methods, e.g.:
+So the ideal approach is to deal with this complexity internally and keep the public API of `ODataMessageWriter` and `ODataWriter` intact. `ODataJsonLightWriter` could call `FlushIfBufferThresholdReached` at key "checkpoints" where it may have written a sizeable chunk of data. For example, it may not make much sense to call that method after calling `IJsonWriter.StartObjectScope()` since that only writes a single character. But it may make sense to call it after writing propert+value pair, `IJsonWriter.EndObjectScope()` or `EndArrayScope()` since it's likely more data would have been written at this point. Find the optimal spots may require running a number of tests with different variations and comparing results. For the purpose of this experiment, we can add the `FlushIfBufferThresholdReached()` call to the `End***` methods, e.g.:
 
 ```c#
 class ODataJsonLightWriter
@@ -342,9 +350,9 @@ class ODataJsonLightWriter
 }
 ```
 
-The danger with buffering too infrequently is that we can exceed the memory buffer and have to resize it, technically it may also be possible to run out of memory if we write an object with an unreasonable number of properties, or array with too many elements, or if we write an excessively long string value. I'm not sure if `Utf8JsonWriter` has [built-in guards against such extremes](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md).
+The danger in buffering too infrequently is that we can exceed the memory buffer and have to resize it, technically it may also be possible to run out of memory if we write an object with an unreasonable number of properties, or array with too many elements, or if we write an excessively long string value. Utf8JsonWriter throws an out-of-memory exception whe requesting a buffer whose length is large than the int max size. [Here's a document](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md) that provides insights on some of the security considerations in System.Text.Json.
 
-## 3. Using a unified `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs
+## 3. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs
 
 The proposed `Utf8ODataJsonWriter` implementation requires special handling in the `StartStreamValueScope()` and `StartTextWriterValueScope()` methods, namely that we have to bypass the `Utf8JsonWriter` and write directly to the stream. This presents the following drawbacks:
 - We have to flush `Utf8JsonWriter` to ensure the data from the return `TextWriter` or `Stream` is not written to the output stream in the wrong order
@@ -352,13 +360,102 @@ The proposed `Utf8ODataJsonWriter` implementation requires special handling in t
 - We have to write single quote characters (`"`) directly to the stream, which may be inefficient
 - We have to make each of these methods async before of the direct stream writes and flushes. This also makes the API inconsistent due to some methods being only sync and some being async
 
-I think we can address some of these challenges by controlling the `IBufferWriter<byte>` directly. Instead of passing a `Stream` to `Utf8JsonWriter`, we pass an `IBufferWrite<byte>` directly, either the default `ArrayBufferWriter<byte>` or a custom clone of `PooledArrayBufferWriter<byte>`. The `IBufferWrite<T>` will wrapt the output `Stream` instead.
+I think we can address some of these challenges by controlling the `IBufferWriter<byte>` directly. Instead of passing a `Stream` to `Utf8JsonWriter`, we pass an `IBufferWrite<byte>` directly, either the default `ArrayBufferWriter<byte>` or a custom clone of `PooledByteBufferWriter`.
 
 Now instead of writing the enclosing quotes to the stream, we write them to the `IBufferWrite<byte>`'s memory synchronously. We also don't have to force a flush for correctness (unless it's beneficial for performance, e.g. to avoid resizes).
 
 The custom `ODataBinaryStreamWriter` and `ODataJsonTextWriter` will have to write the `IBufferWrite<byte>` instead of the `Stream`. This will be a non-trivial refactor because working with an `IBufferWriter<T>` is a significantly different programming model from writing to a `Stream` directly. `Utf8JsonWriter.Flush()` also behaves differently when you pass a stream to it. Careful attention to detail would be required to ensure overall correctness. Here's a list of some of the new challenges that this approach presents:
 
-- 
+- `IBufferWriter` doesn't expose any methods to write or flush to the stream
+- `Utf8JsonWriter.Flush()` doesn't actually flush the `IBufferWriter`, it merely `Advance`s it and updates the `BytesPending` and `BytesCommitted` values
+- This means that we'll still need to call `Utf8JsonWriter.Flush()` before writing directly to the `IBufferWriter` in order to maintain correctness, but this won't flush to the stream and so can be done synchronously
+- To "Flush" the buffer to the stream we'll have to:
+    - Get the data written to the buffer so far from `ArrayBufferWriter.WrittenSpan` (or `WrittenMemory` in async methods)
+    - Write the memory's contents to the stream
+    - Clear the buffer `ArrayBufferWriter.Clear()`
+    - We should ensure to `Utf8JsonWriter.Flush()` is called before we "flush" the buffer writer to ensure the "pending" bytes are also flushed and reflect as written to the buffer
+- We should use `ArrayBufferWriter.WrittenCount` to find out how many bytes are in the buffer and not `Utf8JsonWriter.BytesPending`
+- `ODataBinaryStreamWriter.Write` methods will have to ensure the base64-encoded bytes are also utf8 encoded before writing to the buffer writer
+- To prevent a large file or other stream from being entirely buffered in memory, `ODataBinaryStreamWriter` should also regularly call `FlushIfBufferThresholdReached()`, maybe after a certian number of written bytes. But the caller can also force a flush by calling `Flush/FlushAsync()` on the returned stream.
+- `ODataJsonTextWriter` will also have to occasionally flush its writes to the stream
+- Writing to the buffer involves getting some memory from it using `buffer.GetSpan/GetMemory()`, writing to it then calling `Advance()` to notify the buffer write that data has been written. If writing from `ODataBinaryStreamWriter` or `ODataJsonTextWriter` we have to manage the buffering: what size of memory to request, extending it if we exceed the size, etc. There's a helper extension method [`BuffersExtensions.Write`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.buffersextensions.write?view=net-6.0) that can abstract some of the details from writing to an `IBufferWriter` directly.
+
+## Pseudocode
+
+```c#
+class Utf8ODataJsonWriter: IJsonStreamWriter, IJsonStreaWriterAsync, IDisposable
+{
+    public Utf8ODataJsonWriter(Stream outputStream, bool isIeee754Compatible, int maxDepth)
+    {
+        this.outputStream = outputStream;
+        this.bufferWriter = new ArrayBufferWriter(Capacity);
+        this.utf8Writer = new Utf8JsonWriter(this.bufferWriter, new JsonWriterOptions { SkipValidation = true, MaxDepth = maxDepth });
+    }
+
+    public async Task FlushAsync()
+    {
+        if (utf8Writer.PendingBytes > 0)
+        {
+            utf8Writer.Flush();
+        }
+    
+        var bufferedBytes = this.bufferWriter.WrittenSpan;
+        await outputStream.WriteAsync(bufferedBytes);
+        await outputStream.FlushAsync(); // not sure if this is necessary
+        bufferWriter.Clear();
+    }
+
+    public async Task FlushIfBufferThresholdReachedAsync()
+    {
+        if (utf8Writer.PendingBytes > 0)
+        {
+            utf8Writer.Flush();
+        }
+
+        if (bufferWriter.WrittenCount >= 0.9f * BufferSize)
+        {
+            await FlushAsync();
+        }
+    }
+
+    // this will be called by `ODataUtf8BinaryWriterStream`
+    // and `ODataUtf8TextWriter`
+    internal async Task WriteAsync(ReadOnlySpan<byte> buffer)
+    {
+        bufferWriter.Write(buffer); // uses BufferExtensions.Write helper
+        await FlushIfBufferThresholdReachedAsync();
+    }
+
+
+    // this method does not need to be async
+    public Stream StartStreamValueScope()
+    {
+        // commit pending bytes in Utf8JsonWriter to the IBufferWriter
+        writer.Flush();
+        bufferWriter.Write(UtfEncode('"'));
+        this.binaryValueStream = new ODataUtf8BinaryWriterStream(this);
+        return this.binaryValueStream;
+    }
+
+    // this does not need to be async
+    public Stream EndStreamValueScope()
+    {
+        // we don't need to flush since we have been writing
+        // also binaryValueStream.Write() will have been flushing
+        // occasionally to the stream
+        this.binaryValueStream.Flush();
+        // this should not dispose the underlying stream
+        this.binaryValueStream.Dispose();
+        this.binaryValueStream = null;
+        this.outputStream.Write(Utf8Encode('"'));
+    }
+}
+```
+
+# 4. Moonshot: Generate strongly-typed converters from model to avoid boxing
+
+# 5. Moonshot: Generate strongly-type model-based serializers at compile-time
+
 
 
 
