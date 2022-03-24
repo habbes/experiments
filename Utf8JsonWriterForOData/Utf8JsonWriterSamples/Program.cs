@@ -21,7 +21,7 @@ namespace Utf8JsonWriterSamples
                 model.MarkAsImmutable();
             }
 
-            var data = CustomerDataSet.GetCustomers(1);
+            var data = CustomerDataSet.GetCustomers(1000);
 
             ServerCollection<IEnumerable<Customer>> servers = new(data, 8080);
 
@@ -31,6 +31,7 @@ namespace Utf8JsonWriterSamples
                 ("Utf8JsonWriter", new Utf8JsonWriterServerWriter(stream => new Utf8JsonWriter(stream))),
                 ("Utf8JsonWriter-NoValidation", new Utf8JsonWriterServerWriter(stream =>
                     new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))),
+                ("OData JsonWriter", new ODataJsonWriterServerWriter()),
                 ("OData Sync", new ODataServerWriter(model)),
                 ("OData Async", new ODataAsyncServerWriter(model)));
 
