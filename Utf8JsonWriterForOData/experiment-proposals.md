@@ -9,10 +9,14 @@ The end goal is to considerally improve OData writer's performance (CPU usage, m
 Contents:
 - [0. Evaluation](#0-evaluation)
 - [1. Wrap the synchronous writer in a `BufferedStream`](#1-wrap-the-synchronous-writer-in-a-bufferedstream)
-- [2. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection](#2-provide-a-custom-ijsonwriter-using-utf8jsonwriter-via-depdency-injection)
-- [3. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs](#3-using-a-shared-ibufferwriterbyte-for-both-utf8jsonwriter-and-streamtextwriter-apis)
-- [4. Moonshot: Generate strongly-typed converters from model to avoid boxing](#4-moonshot-generate-strongly-typed-converters-from-model-to-avoid-boxing)
-- [5. Moonshot: Generate strongly-typed model-based serializers at compile time](#5-moonshot-generate-strongly-type-model-based-serializers-at-compile-time)
+- [2. Make `JsonWriter.Scope` more memory-efficient](#2-make-jsonwriterscope-more-memory-efficient)
+- [3. Make `ODataUri` a struct](#3-make-odatauri-a-struct)
+- [4. Use built-in Immutable collections instead of custom Version collectons](#4-use-built-in-immutable-collections-instead-of-custom-versioning-collections)
+- [5. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection](#5-provide-a-custom-ijsonwriter-using-utf8jsonwriter-via-depdency-injection)
+- [6. Removing async API from IJsonWriter Implementation and Requiring caller to flush manually](#6-removing-async-api-from-ijsonwriter-implementation-and-requiring-caller-to-flush-manually)
+- [7. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs](#7-using-a-shared-ibufferwriterbyte-for-both-utf8jsonwriter-and-streamtextwriter-apis)
+- [8. Moonshot: Generate strongly-typed converters from model to avoid boxing](#8-moonshot-generate-strongly-typed-converters-from-model-to-avoid-boxing)
+- [9. Moonshot: Generate strongly-typed model-based serializers at compile time](#9-moonshot-generate-strongly-type-model-based-serializers-at-compile-time)
 
 ## 0. Evaluation
 
@@ -28,7 +32,67 @@ One quick thing to try would be to wrap the sync `Stream` in a `BufferedStream` 
 
 I am also curious to know what the performance for the async scenario would be without the `BufferedStream`.
 
-## 2. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection
+## 2. Make `JsonWriter.Scope` more memory-efficient
+
+The `JsonWriter.Scope` class is a simple class without a lot of data. It essentially keeps track of whether the `JsonWriter` is in an object or array (or JSON padding function). I think we can experiment with making it `struct` so that new instances don't get allocated to the heap. In addition, since we know all the types of scope it supports, the `struct` can be less general. For example, the `StartString` and `EndString` can be of type `char` instead of string since we know the only possible options are `{`, `}`, `[`, `]` and `(`, `)` (actually they can be store in a `byte` each since they're ASCII characters).
+
+Two `Scope` instances with the same `ScopeType` don't hold any different information other than the `ObjectCount`. So we can split the `ObjectCount` from and the other data (scope type, start/end strings). The stack can contain the scope type and the object count packed as structs, then the `start/end string`s can be stored in 3 constant structs, one per scope type, or they can just be determined using switch statements (or test both and see which performs better):
+
+```c#
+Stack<Scope> scopes = new Stack<Scope>();
+
+private void StartScope(ScopeType type)
+{
+    if (scopes.Count != 0 && scopes.Peek().Type != ScopeType.Padding)
+    {
+        Scope currentScope = scopes.Peek();
+        if ((currentScope.Type == ScopeType.Array) && (currentScope.ObjectCount != 0))
+        {
+            this.write.Write(JsonConstants.ArrayElementSeparator);
+        }
+
+        currentScope.ObjectCount++;
+        Scope scope = new Scope(type);
+        scopes.push(scope);
+
+        switch (scopeType) {
+            case ScopeType.Array:
+                this.writer.Writer(JsonConstants.ArrayStartString);
+                break;
+            // etc.
+        }
+
+        //..
+    }
+}
+
+struct Scope
+{
+    ScopeType type;
+    int ObjectCount;
+}
+```
+
+`ObjectCount` tracks the number of properties in the current object or items in the current array. It's used for 2 things:
+- when writing a property name, if the `ObjectCount > 0` then add a `,` separator before writing the property name
+- when writing a value inside in array, if the `ObjectCount > 0` then add a `,` separator before writing the value
+
+For both cases, we don't need to know the actual acount, we just need to know whether we're not on the first item, we can replace the count with a bool flag.
+
+If we stop supporting JSONP, we'll only have 2 possible scope types, then we can consider something like the [BitStack](https://source.dot.net/#System.Text.Json/System/Text/Json/BitStack.cs) in `Utf8JsonWriter`.
+
+## 3. Make ODataUri a struct
+
+The `ODataUri` is cloned (`ODataUri.Clone`) when entering a nested scope in `ODataWriterCore`, it accounts for a lot of heap allocations. Since it's a `sealed` class, we can consider making a `struct` without necessarily having breaking changes. `ODataUri` is a large struct (has a lot of properties), so making it a struct can result in a lot of copy operations on the stack when an instance is passed from one variable to another or one function to another. So to do this effectively, we can use `ref` and `in` keywords in cases where we don't want to create a clone of the struct. I'm still not sure whether this will result in perf improvement or regression, but I think it's worth a try.
+
+This [discussion thread](https://github.com/OData/odata.net/issues/2163) may provide some additional context of why this experiment was initially proposed.
+
+## 4. Use built-in Immutable collections instead of custom Versioning collections
+
+OData Core implements custom immutable collections that provide thread-safety without using locks: `VersioningList`, `VersioningTree`, `VersioningDictionary`, etc.
+These are used to store annotations and other metatadata cached on the model or model elements dynamically. .NET provides built-in immutable collections like [`ImmutableDictionary<TKey, TValue>`](https://docs.microsoft.com/en-us/dotnet/api/system.collections.immutable.immutabledictionary-2?view=net-6.0), `ImmutableArray<T>` and `ImmutableList<T>` that seem to provide similar functionality. We can try comparing these two implementations and see which are more performant.
+
+## 5. Provide a custom `IJsonWriter` using `Utf8JsonWriter` via depdency injection
 
 The OData writer allows injecting a custom `IJsonWriter` implementation. To do this, we have to create a class that implements `IJsonWriterFactory` then inject that in the service container. To provide dependency injection capabilities the `IODataRequestMessage`/`IODataResponseMessage` should also implement `IContainerProvider`. This means it should expose an `Container` property which is the actual `IServiceProvider`.
 
@@ -318,7 +382,7 @@ class Utf8ODataJsonWriter: IJsonStreamWriter, IJsonStreamWriterAsync, IDisposabl
 }
 ```
 
-## 2. Removing Async API from IJsonWriter implementation and requiring caller to Flush manually
+## 6. Removing Async API from IJsonWriter implementation and requiring caller to Flush manually
 
 This is an evolution of the previous proposal and assumes that some `ODataUtf8JsonWriter` implementation has been demonstrated to be feasible. The proposed `ODataUtf8JsonWriter` so far potentially calls `Utf8JsonWriter.Flush/FlushAsync()` on every write call. In most cases it won't actually call `Flush/Async()` since we expect most writes to be buffered in memory. Even though most of the calls won't flush, we still have async versions of all the methods so that when they need to flush, they call `FlushAsync()` instead of `Flush`. This sounds like it would lead to unnecessary async overhead for calls that will write synchronously to memory most of the time. The aim of this proposal is to see whether we can minimize this overhead and whether that would beneficial to the overall writer's performance.
 
@@ -352,7 +416,7 @@ class ODataJsonLightWriter
 
 The danger in buffering too infrequently is that we can exceed the memory buffer and have to resize it, technically it may also be possible to run out of memory if we write an object with an unreasonable number of properties, or array with too many elements, or if we write an excessively long string value. Utf8JsonWriter throws an out-of-memory exception whe requesting a buffer whose length is large than the int max size. [Here's a document](https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/docs/ThreatModel.md) that provides insights on some of the security considerations in System.Text.Json.
 
-## 3. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs
+## 7. Using a shared `IBufferWriter<byte>` for both `Utf8JsonWriter` and `Stream`/`TextWriter` APIs
 
 The proposed `Utf8ODataJsonWriter` implementation requires special handling in the `StartStreamValueScope()` and `StartTextWriterValueScope()` methods, namely that we have to bypass the `Utf8JsonWriter` and write directly to the stream. This presents the following drawbacks:
 - We have to flush `Utf8JsonWriter` to ensure the data from the return `TextWriter` or `Stream` is not written to the output stream in the wrong order
@@ -452,9 +516,18 @@ class Utf8ODataJsonWriter: IJsonStreamWriter, IJsonStreaWriterAsync, IDisposable
 }
 ```
 
-# 4. Moonshot: Generate strongly-typed converters from model to avoid boxing
+# 8. Moonshot: Generate strongly-typed converters from model to avoid boxing
 
-# 5. Moonshot: Generate strongly-type model-based serializers at compile-time
+`IJsonWriter` provides strongly-typed overloads for the `WriteValue()` methods (`Utf8JsonWriter` provides strongly-typed `Write` methods as well). However, it gets the actual values as `object` instances from `ODataProperty.Value` and has to cast them to the appropriate primitive types in `JsonWriterExtensions.WritePrimitiveValue`.
+
+This means that we have to unbox the primitives from `objet` to the actual primitive types. In higher-level libraries like WebAPI, values are actually serialized from concrete Plain-Old-CLR-Object (POCO) types (e.g. `Customer` instances). When we transform a POCO into an `ODataResource` object we are forced to box struct values since `ODataResource` is not strongly typed (it stores property values as `object` instances).
+
+Since we already know the property types in advance (from the `IEdmModel` or POCO instances), maybe we could generate strongly-typed value converters or serializers cusomized for those types via reflection. This means bypassing the creation of `ODataResource` altogether. This similar to the `JsonConverter` model in `System.Text.Json`. We would pay the price of reflection up front, but we can cache the generated converters and re-use them for the lifetime of the application. The `IEdmModel` does not change at runtime in most cases.
+
+This is a moonshot idea, that will take considerable effort to add support for in the library, and would also require significant changes in higher-level libraries. I'm not sure whether it will result in sufficient perf improvement to warrant the effort. But if there's still room for improvement after we've extensively optimized the write and other hotspots and bottlenecks in the serialization and validation processes, this could be something worth exploring.
+# 9. Moonshot: Generate strongly-type model-based serializers at compile-time
+
+This is an evolution of the previous proposal that eliminates the cost of reflection by generating the strongly-typed serializers at compile time. This is inspired from [similar capabilities introduced in System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-source-generation?pivots=dotnet-6-0).
 
 
 
