@@ -42,14 +42,17 @@ namespace Utf8JsonWriterSamples
                     stream => stream.CreateUtf8ODataJsonWriterAsync())),
                 ("OData Async UTF16 JsonWriter", "utf-16", new ODataAsyncJsonWriterServerWriter(
                     stream => stream.CreateUtf16ODataJsonWriterAsync())),
+
                 ("No-op JsonWriter", "utf-8", new ODataJsonWriterServerWriter(
                     stream => new NoopJsonWriter())),
-                
                 ("No-op Async JsonWriter", "utf-8", new ODataAsyncJsonWriterServerWriter(stream => new NoopJsonWriter())),
+
                 ("OData Sync UTF-8", "utf-8", new ODataServerWriter(model, stream => stream.CreateUtf8Message())),
                 ("OData Sync UTF-16", "utf-16",new ODataServerWriter(model, stream => stream.CreateUtf16Message())),
                 ("OData Async UTF-8", "utf-8", new ODataAsyncServerWriter(model, stream => stream.CreateUtf8Message())),
-                ("OData Async UTF-16", "utf-16", new ODataAsyncServerWriter(model, stream => stream.CreateUtf16Message())));
+                ("OData Async UTF-16", "utf-16", new ODataAsyncServerWriter(model, stream => stream.CreateUtf16Message())),
+                ("OData Sync No-op Writer", "utf-8", new ODataServerWriter(model, stream => stream.CreateNoopMessage())),
+                ("OData Async No-op Writer", "utf-8", new ODataAsyncServerWriter(model, stream => stream.CreateNoopMessage())));
 
             servers.StartServers();
            

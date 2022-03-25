@@ -1,4 +1,5 @@
-﻿using Microsoft.OData;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OData;
 using Microsoft.OData.Json;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,25 @@ namespace Utf8JsonWriterSamples
         {
             InMemoryMessage message = new InMemoryMessage { Stream = stream };
             message.SetHeader("Content-Type", "application/json; charset=UTF-16");
+            return message;
+        }
+
+        public static IODataResponseMessage CreateNoopMessage(this Stream stream)
+        {
+            NoopJsonWriterFactory factory = new();
+
+            ServiceCollection services = new ServiceCollection();
+
+            services.AddSingleton<IJsonWriterFactory>(factory);
+            services.AddSingleton<IJsonWriterFactoryAsync>(factory);
+            services.AddSingleton<ODataMessageWriterSettings>(new ODataMessageWriterSettings());
+
+            InMemoryMessage message = new InMemoryMessage
+            {
+                Stream = stream,
+                Container = services.BuildServiceProvider()
+            };
+
             return message;
         }
     }
