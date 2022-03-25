@@ -10,18 +10,18 @@ using System.Threading.Tasks;
 namespace Utf8JsonWriterSamples
 {
     /// <summary>
-    /// A writer for OData payloads based on OData Core's JsonWriter
-    /// class. This will help us evaluate the raw perf of JsonWriter
+    /// A writer for OData payloads based on OData Core's <see cref="IJsonWriterAsync"/>.
+    /// This will help us evaluate the raw perf of async JsonWriter
     /// without all the overhead of high-level libraries (e.g. ODataJsonLightWriter, etc.)
     /// </summary>
-    public class SimpleJsonODataWriter
+    public class SimpleAsyncJsonODataWriter
     {
         readonly Uri serviceRoot;
         readonly string entitySetName;
         readonly Stack<WriterState> stateStack = new();
-        readonly IJsonWriter jsonWriter;
+        readonly IJsonWriterAsync jsonWriter;
 
-        public SimpleJsonODataWriter(IJsonWriter jsonWriter, Uri serviceRoot, string entitySetName)
+        public SimpleAsyncJsonODataWriter(IJsonWriterAsync jsonWriter, Uri serviceRoot, string entitySetName)
         {
             this.serviceRoot = serviceRoot;
             this.entitySetName = entitySetName;
@@ -30,63 +30,64 @@ namespace Utf8JsonWriterSamples
 
         public WriterState CurrentState => stateStack.Peek();
 
-        public void WriteStart(ODataResourceSet resourceSet)
+        public async Task WriteStartAsync(ODataResourceSet resourceSet)
         {
             if (stateStack.Count == 0)
             {
-                jsonWriter.StartObjectScope();
-                jsonWriter.WriteName("@odata.context");
-                jsonWriter.WriteValue($"{serviceRoot.AbsoluteUri}/$metadata/#{entitySetName}");
-                jsonWriter.WriteName("value");
-                jsonWriter.StartArrayScope();
+                await jsonWriter.StartObjectScopeAsync();
+                await jsonWriter.WriteNameAsync("@odata.context");
+                await jsonWriter.WriteValueAsync($"{serviceRoot.AbsoluteUri}/$metadata/#{entitySetName}");
+                await jsonWriter.WriteNameAsync("value");
+                await jsonWriter.StartArrayScopeAsync();
             }
             else
             {
-                jsonWriter.StartArrayScope();
+                await jsonWriter.StartArrayScopeAsync();
             }
+
             stateStack.Push(WriterState.ResourceSet);
         }
 
-        public void WriteStart(ODataResource resource)
+        public async Task WriteStartAsync(ODataResource resource)
         {
-            jsonWriter.StartObjectScope();
+            await jsonWriter.StartObjectScopeAsync();
             stateStack.Push(WriterState.Resource);
 
             foreach (var property in resource.Properties)
             {
-                WriteBasicProperty(property.Name, property.Value);
+                await WriteBasicPropertyAsync(property.Name, property.Value);
             }
         }
 
-        public void WriteStart(ODataNestedResourceInfo nestedResource)
+        public async Task WriteStartAsync(ODataNestedResourceInfo nestedResource)
         {
             if (nestedResource.IsCollection == true)
             {
-                jsonWriter.WriteName(nestedResource.Name);
+                await jsonWriter.WriteNameAsync(nestedResource.Name);
                 stateStack.Push(WriterState.NestedCollection);
             }
             else
             {
-                jsonWriter.WriteName(nestedResource.Name);
+                await jsonWriter.WriteNameAsync(nestedResource.Name);
                 stateStack.Push(WriterState.NestedResource);
             }
         }
 
-        public void WriteEnd()
+        public async Task WriteEndAsync()
         {
             WriterState state = stateStack.Pop();
 
             switch (state)
             {
                 case WriterState.ResourceSet:
-                    jsonWriter.EndArrayScope();
+                    await jsonWriter.EndArrayScopeAsync();
                     if (stateStack.Count == 0)
                     {
-                        jsonWriter.EndObjectScope();
+                        await jsonWriter.EndObjectScopeAsync();
                     }
                     return;
                 case WriterState.Resource:
-                    jsonWriter.EndObjectScope();
+                    await jsonWriter.EndObjectScopeAsync();
                     return;
                 case WriterState.NestedCollection:
                 case WriterState.NestedResource:
@@ -95,50 +96,50 @@ namespace Utf8JsonWriterSamples
             }
         }
 
-        public void Flush()
+        public Task FlushAsync()
         {
-            jsonWriter.Flush();
+            return jsonWriter.FlushAsync();
         }
 
         public void Dispose()
         {
-            jsonWriter.Flush();
+            jsonWriter.FlushAsync().Wait();
         }
 
-        private void WriteBasicProperty(string propertyName, object value)
+        private async Task WriteBasicPropertyAsync(string propertyName, object value)
         {
-            jsonWriter.WriteName(propertyName);
-            WriteBasicValue(value);
+            await jsonWriter.WriteNameAsync(propertyName);
+            await WriteBasicValueAsync(value);
         }
 
-        private void WriteCollectionValue(ODataCollectionValue value)
+        private async Task WriteCollectionValueAsync(ODataCollectionValue value)
         {
-            jsonWriter.StartArrayScope();
+            await jsonWriter.StartArrayScopeAsync();
             foreach (object item in value.Items)
             {
-                WriteBasicValue(item);
+                await WriteBasicValueAsync(item);
             }
 
-            jsonWriter.EndArrayScope();
+            await jsonWriter.EndArrayScopeAsync();
         }
 
-        private void WriteBasicValue(object value)
+        private async Task WriteBasicValueAsync(object value)
         {
             if (value is string stringValue)
             {
-                jsonWriter.WriteValue(stringValue);
+                await jsonWriter.WriteValueAsync(stringValue);
             }
             else if (value is int intValue)
             {
-                jsonWriter.WriteValue(intValue);
+                await jsonWriter.WriteValueAsync(intValue);
             }
             else if (value is bool boolValue)
             {
-                jsonWriter.WriteValue(boolValue);
+                await jsonWriter.WriteValueAsync(boolValue);
             }
             else if (value is ODataCollectionValue collectionValue)
             {
-                WriteCollectionValue(collectionValue);
+                await WriteCollectionValueAsync(collectionValue);
             }
             else
             {

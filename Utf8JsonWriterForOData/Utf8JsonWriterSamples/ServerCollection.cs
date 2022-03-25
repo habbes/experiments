@@ -23,17 +23,17 @@ namespace Utf8JsonWriterSamples
             nextPort = startPort;
         }
 
-        public void AddServer(string name, IServerWriter<T> serverWriter)
+        public void AddServer(string name, string charset, IServerWriter<T> serverWriter)
         {
-            servers.Add((name, nextPort, new Server<T>(nextPort, serverWriter, data)));
+            servers.Add((name, nextPort, new Server<T>(nextPort, serverWriter, data, charset: charset)));
             nextPort++;
         }
 
-        public void AddServers(params (string name, IServerWriter<T> serverWriter)[] servers)
+        public void AddServers(params (string name, string charset, IServerWriter<T> serverWriter)[] servers)
         {
-            foreach (var (name, serverWriter) in servers)
+            foreach (var (name, charset, serverWriter) in servers)
             {
-                AddServer(name, serverWriter);
+                AddServer(name, charset, serverWriter);
             }
         }
 

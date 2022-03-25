@@ -1,4 +1,5 @@
 ﻿using Microsoft.OData;
+using Microsoft.OData.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,15 +10,25 @@ using System.Threading.Tasks;
 
 namespace Utf8JsonWriterSamples
 {
+    /// <summary>
+    /// Writes Customer collection OData JSON format using <see cref="IJsonWriter"/> directly.
+    /// </summary>
     internal class ODataJsonWriterServerWriter : IServerWriter<IEnumerable<Customer>>
     {
+        private readonly Func<Stream, IJsonWriter> jsonWriterFactory;
+
+        public ODataJsonWriterServerWriter(Func<Stream, IJsonWriter> jsonWriterFactory)
+        {
+            this.jsonWriterFactory = jsonWriterFactory;
+        }
+
         public Task WritePayload(IEnumerable<Customer> payload, Stream stream)
         {
             var sw = new Stopwatch();
             sw.Start();
 
             var serviceRoot = new Uri("https://services.odata.org/V4/OData/OData.svc/");
-            var writer = new SimpleJsonODataWriter(stream, serviceRoot, "Customers");
+            var writer = new SimpleJsonODataWriter(this.jsonWriterFactory(stream), serviceRoot, "Customers");
 
 
             var resourceSet = new ODataResourceSet();
@@ -25,7 +36,6 @@ namespace Utf8JsonWriterSamples
             writer.WriteStart(resourceSet);
 
             //Console.WriteLine("About to write resources {0}", payload.Count());
-            int count = 0;
             foreach (var customer in payload)
             {
                 // await resourceSerializer.WriteObjectInlineAsync(item, elementType, writer, writeContext);

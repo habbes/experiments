@@ -28,12 +28,14 @@ namespace Utf8JsonWriterSamples
         HttpListener _server;
         bool _running = false;
         Task _runningTask;
-        public Server(int port, IServerWriter<T> responseWriter, T data)
+        string _contentType;
+        public Server(int port, IServerWriter<T> responseWriter, T data, string charset="utf-8")
         {
             _writer = responseWriter;
             _data = data;
             _server = new HttpListener();
             _server.Prefixes.Add($"http://localhost:{port}/");
+            _contentType = $"application/json; charset={charset}";
         }
 
         public void Dispose()
@@ -80,7 +82,7 @@ namespace Utf8JsonWriterSamples
 
                     T responseData = default(T);
 
-                    resp.ContentType = "application/json";
+                    resp.ContentType = _contentType;
 
                     // allow use to specify data size with ?count=<count> query param
                     //if (!string.IsNullOrEmpty(req.Url.Query))

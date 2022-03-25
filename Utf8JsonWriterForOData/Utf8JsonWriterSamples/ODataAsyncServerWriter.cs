@@ -11,17 +11,21 @@ using System.Threading.Tasks;
 namespace Utf8JsonWriterSamples
 {
     /// <summary>
-    /// Writes Customer collection JSON using <see cref="ODataMessageWriter"/> async version.
+    /// Writes Customer collection OData JSON format using <see cref="ODataMessageWriter"/> async version.
     /// </summary>
     class ODataAsyncServerWriter : IServerWriter<IEnumerable<Customer>>
     {
         IEdmModel _model;
         bool _useArrayPool = false;
+        bool _enableValidation;
+        Func<Stream, IODataResponseMessage> _messageFactory;
 
-        public ODataAsyncServerWriter(IEdmModel model, bool useArrayPool = false)
+        public ODataAsyncServerWriter(IEdmModel model, Func<Stream, IODataResponseMessage> messageFactory, bool enableValidation = true, bool useArrayPool = false)
         {
             _model = model;
             _useArrayPool = useArrayPool;
+            _enableValidation = enableValidation;
+            _messageFactory = messageFactory;
         }
         public async Task WritePayload(IEnumerable<Customer> payload, Stream stream)
         {
@@ -32,14 +36,18 @@ namespace Utf8JsonWriterSamples
             {
                 ServiceRoot = new Uri("https://services.odata.org/V4/OData/OData.svc/")
             };
-            //if (_useArrayPool)
-            //{
-            //    settings.ArrayPool = CharArrayPool.Shared;
-            //}
-            var model = _model;
-            InMemoryMessage message = new InMemoryMessage { Stream = stream };
 
-            var messageWriter = new ODataMessageWriter((IODataResponseMessage)message, settings, model);
+            if (!_enableValidation)
+            {
+                settings.Validations = ValidationKinds.None;
+                settings.EnableCharactersCheck = false;
+                settings.AlwaysAddTypeAnnotationsForDerivedTypes = false;
+            }
+            
+            var model = _model;
+            IODataResponseMessage message = _messageFactory(stream);
+
+            var messageWriter = new ODataMessageWriter(message, settings, model);
             var entitySet = model.EntityContainer.FindEntitySet("Customers");
             var writer = await messageWriter.CreateODataResourceSetWriterAsync(entitySet);
 
