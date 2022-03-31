@@ -4,3 +4,4 @@
 - [OData - GraphQL Interoperability](./ODataGraphQLInterop)
 - [OData Client memory leaks caused by static caches](./ODataClientStaticCacheModelMemoryLeak)
 - [Investigating Utf8JsonWriter for OData](./Utf8JsonWriterForOData/)
+- [Intro to SIMD in .NET](./DotNetSIMD/)

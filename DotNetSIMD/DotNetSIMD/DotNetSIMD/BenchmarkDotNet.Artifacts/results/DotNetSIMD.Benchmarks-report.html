@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>DotNetSIMD.Benchmarks-20220318-132836</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
+Intel Core i7-8665U CPU 1.90GHz (Coffee Lake), 1 CPU, 8 logical and 4 physical cores
+.NET SDK=6.0.201
+  [Host]     : .NET 6.0.3 (6.0.322.12309), X64 RyuJIT
+  DefaultJob : .NET 6.0.3 (6.0.322.12309), X64 RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>       Method</th><th>Categories</th><th>dataSize</th><th>  Mean</th><th>Error</th><th>StdDev</th><th> Median</th><th>Ratio</th><th>RatioSD</th><th>Code Size</th>
+</tr>
+</thead><tbody><tr><td>MemberWiseSumScalar</td><td>MemberWiseSum</td><td>4096</td><td>4.975 &mu;s</td><td>0.1233 &mu;s</td><td>0.3635 &mu;s</td><td>4.9436 &mu;s</td><td>1.00</td><td>0.00</td><td>184 B</td>
+</tr><tr><td>MemberWiseSumSIMD</td><td>MemberWiseSum</td><td>4096</td><td>4.052 &mu;s</td><td>0.3090 &mu;s</td><td>0.9111 &mu;s</td><td>3.9933 &mu;s</td><td>0.82</td><td>0.21</td><td>134 B</td>
+</tr><tr><td>ArraySumSalar</td><td>ArraySum</td><td>4096</td><td>3.771 &mu;s</td><td>0.1445 &mu;s</td><td>0.4262 &mu;s</td><td>3.7618 &mu;s</td><td>1.00</td><td>0.00</td><td>51 B</td>
+</tr><tr><td>ArraySumSIMD</td><td>ArraySum</td><td>4096</td><td>1.035 &mu;s</td><td>0.1079 &mu;s</td><td>0.3078 &mu;s</td><td>0.9203 &mu;s</td><td>0.28</td><td>0.08</td><td>136 B</td>
+</tr><tr><td>MemberWiseSumScalar</td><td>MemberWiseSum</td><td>65536</td><td>67.470 &mu;s</td><td>3.9889 &mu;s</td><td>11.0533 &mu;s</td><td>67.9839 &mu;s</td><td>1.00</td><td>0.00</td><td>184 B</td>
+</tr><tr><td>MemberWiseSumSIMD</td><td>MemberWiseSum</td><td>65536</td><td>36.167 &mu;s</td><td>1.1960 &mu;s</td><td>3.4123 &mu;s</td><td>35.0679 &mu;s</td><td>0.55</td><td>0.10</td><td>134 B</td>
+</tr><tr><td>ArraySumSalar</td><td>ArraySum</td><td>65536</td><td>45.124 &mu;s</td><td>1.4357 &mu;s</td><td>4.1425 &mu;s</td><td>44.3719 &mu;s</td><td>1.00</td><td>0.00</td><td>51 B</td>
+</tr><tr><td>ArraySumSIMD</td><td>ArraySum</td><td>65536</td><td>14.721 &mu;s</td><td>1.5395 &mu;s</td><td>4.5391 &mu;s</td><td>13.1433 &mu;s</td><td>0.33</td><td>0.12</td><td>136 B</td>
+</tr><tr><td>MemberWiseSumScalar</td><td>MemberWiseSum</td><td>1048576</td><td>1,582.610 &mu;s</td><td>36.5532 &mu;s</td><td>106.0473 &mu;s</td><td>1,561.2326 &mu;s</td><td>1.00</td><td>0.00</td><td>184 B</td>
+</tr><tr><td>MemberWiseSumSIMD</td><td>MemberWiseSum</td><td>1048576</td><td>991.435 &mu;s</td><td>19.1238 &mu;s</td><td>18.7821 &mu;s</td><td>982.2410 &mu;s</td><td>0.58</td><td>0.02</td><td>134 B</td>
+</tr><tr><td>ArraySumSalar</td><td>ArraySum</td><td>1048576</td><td>683.266 &mu;s</td><td>13.0133 &mu;s</td><td>11.5360 &mu;s</td><td>684.4435 &mu;s</td><td>1.00</td><td>0.00</td><td>51 B</td>
+</tr><tr><td>ArraySumSIMD</td><td>ArraySum</td><td>1048576</td><td>281.997 &mu;s</td><td>23.0494 &mu;s</td><td>65.7611 &mu;s</td><td>289.8456 &mu;s</td><td>0.26</td><td>0.02</td><td>136 B</td>
+</tr></tbody></table>
+</body>
+</html>
