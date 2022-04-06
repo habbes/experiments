@@ -1,0 +1,29 @@
+jobs:
+  benchmarks:
+    source:
+      localFolder: .
+      project: JsonWriterBenchmarks/JsonWriterBenchmarks.csproj
+    variables:
+      jobArg: short
+      filterArg: "*"
+    arguments: --job {{jobArg}} --filter {{filterArg}} --memory
+    options:
+      benchmarkDotNet: true
+    
+scenarios:
+  benchmarks:
+    application:
+      job: benchmarks
+
+profiles:
+  local:
+    jobs:
+      application:
+        endpoints:
+          - http://localhost:5010
+
+  lab-win:
+    jobs:
+      application:
+        endpoints:
+          - http://asp-perf-win:5001

@@ -1,0 +1,80 @@
+imports:
+  - https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Bombardier/bombardier.yml
+
+jobs:
+  server:
+    source:
+      localFolder: .
+      project: SimpleServer/SimpleServer.csproj
+    readyStateText: Application started.
+    variables:
+      writer: 'ODataMessageWriter-Utf8'
+      port: 5000
+      count: 50
+    arguments: '{{writer}} --port={{port}} --dataCount={{count}}'
+    
+
+scenarios:
+  highLoad:
+    application:
+      job: server
+    load:
+      job: bombardier
+      variables:
+        serverPort: 5000
+        connections: 128
+        duration: 30
+        rate: 1000
+        path: /
+  singleRequests:
+    application:
+      job: server
+    load:
+      job: bombardier
+      variables:
+        serverPort: 5000
+        connections: 128
+        duration: 30
+        rate: 1
+        path: /
+  mediumLoad:
+    application:
+      job: server
+    load:
+      job: bombardier
+      variables:
+        serverPort: 5000
+        connections: 128
+        duration: 30
+        rate: 200
+        path: /
+
+profiles:
+  local:
+    variables:
+      serverPort: 5000
+      serverAddress: localhost
+    jobs:
+      application:
+        endpoints:
+          - http://localhost:5010
+      load:
+        endpoints:
+          - http://localhost:5010
+  lab-win:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.0.0.110
+      cores: 8
+    jobs:
+      application:
+        endpoints:
+          - http://asp-perf-win:5001
+        variables:
+          serverAddress: 10.0.0.110
+      load:
+        endpoints:
+          - http://asp-perf-db:5001
+        variables:
+          serverAddress: 10.0.0.110
+    

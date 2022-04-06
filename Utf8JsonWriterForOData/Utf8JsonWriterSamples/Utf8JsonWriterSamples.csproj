@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\..\..\odata.net\src\Microsoft.OData.Core\Microsoft.OData.Core.csproj" />
+    <ProjectReference Include="..\ExperimentsLib\ExperimentsLib.csproj" />
   </ItemGroup>
 
 </Project>

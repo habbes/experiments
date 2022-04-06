@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32126.315
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utf8JsonWriterSamples", "Utf8JsonWriterSamples.csproj", "{B8418894-70D9-4512-BA72-6D9CD404C5D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utf8JsonWriterSamples", "Utf8JsonWriterSamples.csproj", "{B8418894-70D9-4512-BA72-6D9CD404C5D8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Core", "..\..\..\..\..\..\..\odata.net\src\Microsoft.OData.Core\Microsoft.OData.Core.csproj", "{2235BA26-CD36-4A14-9F41-2FC835823D19}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Edm", "..\..\..\..\..\..\..\odata.net\src\Microsoft.OData.Edm\Microsoft.OData.Edm.csproj", "{08F205E1-6242-43B7-AEB8-8009B33C51BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExperimentsLib", "..\ExperimentsLib\ExperimentsLib.csproj", "{714E3469-0BCB-4113-9AE0-0A4609FAEB88}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonWriterBenchmarks", "..\JsonWriterBenchmarks\JsonWriterBenchmarks.csproj", "{AAA2CA53-DF29-44D6-8505-BD0E9E15204B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServer", "..\SimpleServer\SimpleServer.csproj", "{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +33,18 @@ Global
 		{08F205E1-6242-43B7-AEB8-8009B33C51BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08F205E1-6242-43B7-AEB8-8009B33C51BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08F205E1-6242-43B7-AEB8-8009B33C51BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{714E3469-0BCB-4113-9AE0-0A4609FAEB88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{714E3469-0BCB-4113-9AE0-0A4609FAEB88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{714E3469-0BCB-4113-9AE0-0A4609FAEB88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{714E3469-0BCB-4113-9AE0-0A4609FAEB88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAA2CA53-DF29-44D6-8505-BD0E9E15204B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAA2CA53-DF29-44D6-8505-BD0E9E15204B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAA2CA53-DF29-44D6-8505-BD0E9E15204B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAA2CA53-DF29-44D6-8505-BD0E9E15204B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
