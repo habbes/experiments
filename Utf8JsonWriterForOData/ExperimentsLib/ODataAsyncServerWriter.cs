@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// Writes Customer collection OData JSON format using <see cref="ODataMessageWriter"/> async version.
@@ -152,6 +152,7 @@ namespace Utf8JsonWriterSamples
                 //Console.WriteLine("Finised customer {0}", customer.Id);
             }
             await writer.WriteEndAsync();
+            await writer.FlushAsync();
         }
     }
 }

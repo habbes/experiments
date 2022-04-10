@@ -2,26 +2,48 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using Utf8JsonWriterSamples;
+using ExperimentsLib;
 
 namespace ExperimentsLib
 {
     public static class DefaultServerCollection
     {
         const int BufferSize = 84000;
-        public static ServerCollection<IEnumerable<Customer>> Create(IEnumerable<Customer> data)
+        public static ServerCollection<IEnumerable<Customer>> Create(IEnumerable<Customer> data, string baseHost="http://localhost")
         {
             IEdmModel model = DataModel.GetEdmModel();
             model.MarkAsImmutable();
-            ServerCollection<IEnumerable<Customer>> servers = new(data);
+            ServerCollection<IEnumerable<Customer>> servers = new(data, baseHost);
 
             servers.AddServers(
                 ("JsonSerializer", "utf-8", new JsonSerializerServerWriter()),
 
-                ("Utf8JsonWriter-Basic", "utf-8", new Utf8JsonWriterBasicServerWriter(stream => new Utf8JsonWriter(stream))),
+                ("Utf8JsonWriter-Direct", "utf-8", new Utf8JsonWriterBasicServerWriter(stream => new Utf8JsonWriter(stream))),
+                ("Utf8JsonWriter-Direct-NoValidation", "utf-8", new Utf8JsonWriterBasicServerWriter(
+                    stream => new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))),
+                ("Utf8JsonWriter-Direct-ResourceGeneration", "utf-8", new Utf8JsonWriterBasicServerWriter(
+                    stream => new Utf8JsonWriter(stream), simulateResourceGeneration: true)),
+                ("Utf8JsonWriter-Direct-ArrayPool", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
+                    bufferWriter => new Utf8JsonWriter(bufferWriter))),
+                ("Utf8JsonWriter-Direct-ArrayPool-ResourceGeneration", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
+                    bufferWriter => new Utf8JsonWriter(bufferWriter), simulateResourceGeneration: true)),
+
                 ("Utf8JsonWriter", "utf-8", new Utf8JsonWriterServerWriter(stream => new Utf8JsonWriter(stream))),
                 ("Utf8JsonWriter-NoValidation", "utf-8", new Utf8JsonWriterServerWriter(stream =>
                     new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))),
+                ("Utf8JsonWriter-ArrayPool", "utf-8", new Utf8JsonWriterServerWriterWithArrayPool(bufferWriter => new Utf8JsonWriter(bufferWriter))),
+                ("Utf8JsonWriter-ArrayPool-NoValidation", "utf-8", new Utf8JsonWriterServerWriterWithArrayPool(
+                    bufferWriter => new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { SkipValidation = true }))),
+
+                ("ODataJsonWriter-Direct", "utf-8", new ODataJsonWriterBasicServerWriter(
+                    stream => stream.CreateUtf8ODataJsonWriter())),
+                ("ODataJsonWriter-Direct-ResourceGeneration", "utf-8", new ODataJsonWriterBasicServerWriter(
+                    stream => stream.CreateUtf8ODataJsonWriter(), simulateTypedResourceGeneration: true)),
+
+                ("ODataJsonWriter-Direct-Async", "utf-8", new ODataJsonWriterAsyncBasicServerWriter(
+                    stream => stream.CreateUtf8ODataJsonWriterAsync())),
+                ("ODataJsonWriter-Direct-ResourceGeneration-Async", "utf-8", new ODataJsonWriterAsyncBasicServerWriter(
+                    stream => stream.CreateUtf8ODataJsonWriterAsync(), simulateTypedResourceGeneration: false)),
 
                 ("ODataJsonWriter-Utf8", "utf-8", new ODataJsonWriterServerWriter(
                     stream => stream.CreateUtf8ODataJsonWriter())),

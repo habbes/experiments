@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// Writes Customer collection payload using <see cref="ODataMessageWriter"/>
@@ -156,7 +156,7 @@ namespace Utf8JsonWriterSamples
             }
 
             writer.WriteEnd();
-
+            writer.Flush();
             return Task.CompletedTask;
         }
     }

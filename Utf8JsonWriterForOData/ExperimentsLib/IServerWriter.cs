@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// Represents a serializer that can

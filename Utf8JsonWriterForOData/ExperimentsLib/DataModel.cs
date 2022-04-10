@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.OData.Edm;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     public class Customer
     {

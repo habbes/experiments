@@ -11,9 +11,16 @@ jobs:
       benchmarkDotNet: true
     
 scenarios:
-  benchmarks:
+  memory:
     application:
       job: benchmarks
+      variables:
+        filterArg: "*Memory*"
+  file:
+    application:
+      job: benchmarks
+      variables:
+        filterArg: "*File*"
 
 profiles:
   local:

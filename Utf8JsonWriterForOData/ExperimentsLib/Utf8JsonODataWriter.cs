@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// A writer for OData payloads that uses
@@ -36,7 +36,7 @@ namespace Utf8JsonWriterSamples
             if (stateStack.Count == 0)
             {
                 writer.WriteStartObject();
-                writer.WriteString("@odata.context", $"{serviceRoot.AbsoluteUri}/$metadata/#{entitySetName}");
+                writer.WriteString("@odata.context", $"{serviceRoot.AbsoluteUri}$metadata#{entitySetName}");
                 writer.WriteStartArray("value");
             }
             else

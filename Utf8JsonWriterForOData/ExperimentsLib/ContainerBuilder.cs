@@ -1,12 +1,8 @@
 ﻿using OData = Microsoft.OData;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     internal class ContainerBuilder : OData.IContainerBuilder
     {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.OData;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,11 +14,12 @@ namespace ExperimentsLib
     /// <summary>
     /// Writes a Customers collection payload using <see cref="Utf8JsonODataWriter"/>.
     /// </summary>
-    public class Utf8JsonWriterServerWriter : IServerWriter<IEnumerable<Customer>>
+    public class Utf8JsonWriterServerWriterWithArrayPool : IServerWriter<IEnumerable<Customer>>
     {
-        Func<Stream, Utf8JsonWriter> _writerFactory;
+        Func<IBufferWriter<byte>, Utf8JsonWriter> _writerFactory;
+        const int BufferSize = 16 * 1024;
 
-        public Utf8JsonWriterServerWriter(Func<Stream, Utf8JsonWriter> writerFactory)
+        public Utf8JsonWriterServerWriterWithArrayPool(Func<IBufferWriter<byte>, Utf8JsonWriter> writerFactory)
         {
             _writerFactory = writerFactory;
         }
@@ -28,7 +30,8 @@ namespace ExperimentsLib
             sw.Start();
 
             var serviceRoot = new Uri("https://services.odata.org/V4/OData/OData.svc/");
-            var jsonWriter = _writerFactory(stream);
+            using var bufferWriter = new PooledByteBufferWriter(BufferSize);
+            using Utf8JsonWriter jsonWriter = _writerFactory(bufferWriter);
             var writer = new Utf8JsonODataWriter(jsonWriter, serviceRoot, "Customers");
 
             var resourceSet = new ODataResourceSet();
@@ -141,7 +144,8 @@ namespace ExperimentsLib
                 // bytes in the buffer before flushing. I was trying to achieve similar behavior to JsonSerializer (0.9 * 16k)
                 if (count % 66 == 0)
                 {
-                    await jsonWriter.FlushAsync();
+                    await bufferWriter.WriteToStreamAsync(stream, cancellationToken: default);
+                    bufferWriter.Clear();
                 }
 
                 count++;
@@ -149,6 +153,9 @@ namespace ExperimentsLib
 
             writer.WriteEnd();
             await jsonWriter.FlushAsync();
+            await bufferWriter.WriteToStreamAsync(stream, default);
+            bufferWriter.Clear();
+            //await jsonWriter.FlushAsync();
         }
     }
 }

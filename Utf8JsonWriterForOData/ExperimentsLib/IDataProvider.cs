@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     public interface IDataProvider<T>
     {

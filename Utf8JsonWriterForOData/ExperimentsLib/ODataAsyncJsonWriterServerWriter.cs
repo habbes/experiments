@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// Writes Customer collection OData JSON format using an <see cref="IJsonWriterAsync"/>

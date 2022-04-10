@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     public class NoopJsonWriterFactory : IJsonWriterFactory, IJsonWriterFactoryAsync
     {

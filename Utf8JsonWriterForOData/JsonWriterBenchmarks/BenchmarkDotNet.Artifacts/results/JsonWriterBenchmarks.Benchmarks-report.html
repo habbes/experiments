@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>JsonWriterBenchmarks.Benchmarks-20220406-093902</title>
+<title>JsonWriterBenchmarks.Benchmarks-20220407-164741</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -16,35 +16,45 @@
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
 Intel Core i7-8665U CPU 1.90GHz (Coffee Lake), 1 CPU, 8 logical and 4 physical cores
 .NET SDK=6.0.201
-  [Host]     : .NET 5.0.15 (5.0.1522.11506), X64 RyuJIT
-  Job-HNBPCL : .NET 5.0.15 (5.0.1522.11506), X64 RyuJIT
+  [Host]   : .NET 5.0.15 (5.0.1522.11506), X64 RyuJIT
+  ShortRun : .NET 5.0.15 (5.0.1522.11506), X64 RyuJIT
 </code></pre>
-<pre><code>InvocationCount=1  UnrollFactor=1  
+<pre><code>Job=ShortRun  InvocationCount=1  IterationCount=3  
+LaunchCount=1  UnrollFactor=1  WarmupCount=3  
 </code></pre>
 
 <table>
-<thead><tr><th>                                       Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Ratio</th><th>RatioSD</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+<thead><tr><th>Method</th><th>                                  WriterName</th><th> Mean</th><th> Error</th><th>StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>JsonSerializer_Write</td><td>8.854 ms</td><td>0.1670 ms</td><td>0.3631 ms</td><td>8.847 ms</td><td>0.04</td><td>0.01</td><td>-</td><td>-</td><td>-</td><td>4 MB</td>
-</tr><tr><td>Utf8JsonWriter_WriteMemory</td><td>29.630 ms</td><td>2.4805 ms</td><td>7.3139 ms</td><td>33.088 ms</td><td>0.15</td><td>0.05</td><td>4000.0000</td><td>2000.0000</td><td>1000.0000</td><td>19 MB</td>
-</tr><tr><td>Utf8JsonWriterNoValidation_WriteMemory</td><td>31.939 ms</td><td>1.5636 ms</td><td>4.5612 ms</td><td>33.009 ms</td><td>0.16</td><td>0.05</td><td>4000.0000</td><td>2000.0000</td><td>1000.0000</td><td>19 MB</td>
-</tr><tr><td>ODataJsonWriterUtf8_WriteMemory</td><td>23.438 ms</td><td>0.4673 ms</td><td>1.3333 ms</td><td>23.201 ms</td><td>0.12</td><td>0.03</td><td>3000.0000</td><td>1000.0000</td><td>-</td><td>19 MB</td>
-</tr><tr><td>ODataJsonWriterUtf16_WriteMemory</td><td>33.122 ms</td><td>1.8802 ms</td><td>5.5143 ms</td><td>31.171 ms</td><td>0.17</td><td>0.06</td><td>4000.0000</td><td>1000.0000</td><td>1000.0000</td><td>23 MB</td>
-</tr><tr><td>ODataJsonWriterUtf8Buffered_WriteMemory</td><td>26.646 ms</td><td>0.7779 ms</td><td>2.2815 ms</td><td>26.349 ms</td><td>0.13</td><td>0.04</td><td>3000.0000</td><td>1000.0000</td><td>-</td><td>25 MB</td>
-</tr><tr><td>ODataJsonWriterUtf8Async_WriteMemory</td><td>176.305 ms</td><td>16.7132 ms</td><td>49.2793 ms</td><td>179.337 ms</td><td>0.91</td><td>0.45</td><td>7000.0000</td><td>1000.0000</td><td>-</td><td>32 MB</td>
-</tr><tr><td>ODataJsonWriterUtf16Async_WriteMemory</td><td>241.036 ms</td><td>13.4582 ms</td><td>39.6817 ms</td><td>235.281 ms</td><td>1.22</td><td>0.41</td><td>8000.0000</td><td>2000.0000</td><td>1000.0000</td><td>36 MB</td>
-</tr><tr><td>ODataJsonWriterUtf8BufferdAsync_WriteMemory</td><td>224.636 ms</td><td>21.7107 ms</td><td>64.0145 ms</td><td>242.533 ms</td><td>1.14</td><td>0.50</td><td>7000.0000</td><td>-</td><td>-</td><td>33 MB</td>
-</tr><tr><td>ODataMessageWriterUtf8_WriteMemory</td><td>213.120 ms</td><td>17.8739 ms</td><td>52.7015 ms</td><td>220.673 ms</td><td>1.00</td><td>0.00</td><td>13000.0000</td><td>1000.0000</td><td>-</td><td>59 MB</td>
-</tr><tr><td>ODataMessageWriterUtf16_WriteMemory</td><td>226.174 ms</td><td>20.0885 ms</td><td>59.2314 ms</td><td>226.208 ms</td><td>1.12</td><td>0.37</td><td>14000.0000</td><td>2000.0000</td><td>1000.0000</td><td>63 MB</td>
-</tr><tr><td>ODataMessageWriterUtf8NoValidation_WriteMemory</td><td>185.398 ms</td><td>16.6749 ms</td><td>49.1664 ms</td><td>169.115 ms</td><td>0.94</td><td>0.37</td><td>12000.0000</td><td>-</td><td>-</td><td>54 MB</td>
-</tr><tr><td>ODataMessageWriterUtf8Buffered_WriteMemory</td><td>180.710 ms</td><td>12.9002 ms</td><td>37.8341 ms</td><td>181.309 ms</td><td>0.91</td><td>0.31</td><td>13000.0000</td><td>1000.0000</td><td>-</td><td>59 MB</td>
-</tr><tr><td>ODataMessageWriterNoOp_WriteMemory</td><td>122.040 ms</td><td>7.8903 ms</td><td>22.3836 ms</td><td>114.830 ms</td><td>0.61</td><td>0.19</td><td>13000.0000</td><td>-</td><td>-</td><td>53 MB</td>
-</tr><tr><td>ODataMessageWriterNoOpNoValodation_WriteMemory</td><td>88.877 ms</td><td>1.7604 ms</td><td>2.6883 ms</td><td>88.288 ms</td><td>0.43</td><td>0.09</td><td>12000.0000</td><td>-</td><td>-</td><td>49 MB</td>
-</tr><tr><td>ODataMessageWriterUtf8Async_WriteMemory</td><td>754.469 ms</td><td>57.6632 ms</td><td>170.0212 ms</td><td>691.820 ms</td><td>3.68</td><td>0.91</td><td>21000.0000</td><td>-</td><td>-</td><td>89 MB</td>
-</tr><tr><td>ODataMessageWriterUtf16Async_WriteMemory</td><td>609.082 ms</td><td>11.0666 ms</td><td>10.3517 ms</td><td>610.080 ms</td><td>2.72</td><td>0.58</td><td>22000.0000</td><td>1000.0000</td><td>1000.0000</td><td>94 MB</td>
-</tr><tr><td>ODataMessageWriterUtf8NoValidationAsync_WriteMemory</td><td>617.979 ms</td><td>23.9109 ms</td><td>66.6541 ms</td><td>586.225 ms</td><td>3.13</td><td>1.09</td><td>20000.0000</td><td>-</td><td>-</td><td>85 MB</td>
-</tr><tr><td>ODataMessageWriterNoOpAsync_WriteMemory</td><td>840.330 ms</td><td>51.4270 ms</td><td>151.6338 ms</td><td>797.751 ms</td><td>4.25</td><td>1.47</td><td>21000.0000</td><td>1000.0000</td><td>-</td><td>89 MB</td>
-</tr><tr><td>ODataMessageWriterNoOpNoValidationAsync_WriteMemory</td><td>577.150 ms</td><td>4.5376 ms</td><td>3.5427 ms</td><td>577.042 ms</td><td>2.64</td><td>0.55</td><td>20000.0000</td><td>-</td><td>-</td><td>85 MB</td>
+</thead><tbody><tr><td>WriteToFile</td><td>JsonSerializer</td><td>687.74 ms</td><td>551.91 ms</td><td>30.252 ms</td><td>-</td><td>-</td><td>62 KB</td>
+</tr><tr><td>WriteToFile</td><td>NoOpWriter</td><td>148.72 ms</td><td>245.17 ms</td><td>13.439 ms</td><td>16000.0000</td><td>-</td><td>68,168 KB</td>
+</tr><tr><td>WriteToFile</td><td>NoOpWriter-Async</td><td>147.36 ms</td><td>89.11 ms</td><td>4.884 ms</td><td>16000.0000</td><td>-</td><td>68,168 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf16</td><td>283.90 ms</td><td>127.54 ms</td><td>6.991 ms</td><td>18000.0000</td><td>-</td><td>74,836 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf16-Async</td><td>1,851.30 ms</td><td>1,483.99 ms</td><td>81.342 ms</td><td>36000.0000</td><td>-</td><td>147,532 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf8</td><td>260.76 ms</td><td>161.16 ms</td><td>8.834 ms</td><td>18000.0000</td><td>-</td><td>74,841 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf8-Async</td><td>2,662.04 ms</td><td>5,018.13 ms</td><td>275.061 ms</td><td>36000.0000</td><td>-</td><td>147,538 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf8-Buffered</td><td>213.82 ms</td><td>155.03 ms</td><td>8.497 ms</td><td>18000.0000</td><td>1000.0000</td><td>75,247 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataJsonWriter-Utf8-Buffered-Async</td><td>1,596.16 ms</td><td>1,805.49 ms</td><td>98.965 ms</td><td>35000.0000</td><td>1000.0000</td><td>142,284 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-NoOp</td><td>605.07 ms</td><td>269.05 ms</td><td>14.748 ms</td><td>60000.0000</td><td>-</td><td>248,044 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-NoOp-Async</td><td>867.31 ms</td><td>152.46 ms</td><td>8.357 ms</td><td>66000.0000</td><td>1000.0000</td><td>272,279 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-NoOp-NoValidation</td><td>525.55 ms</td><td>314.99 ms</td><td>17.266 ms</td><td>55000.0000</td><td>-</td><td>226,947 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-NoOp-NoValidation-Async</td><td>733.15 ms</td><td>72.00 ms</td><td>3.946 ms</td><td>61000.0000</td><td>-</td><td>251,183 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf16</td><td>654.28 ms</td><td>216.75 ms</td><td>11.881 ms</td><td>62000.0000</td><td>-</td><td>254,606 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf16-Async</td><td>2,941.95 ms</td><td>683.37 ms</td><td>37.458 ms</td><td>87000.0000</td><td>6000.0000</td><td>429,607 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf8</td><td>573.54 ms</td><td>257.60 ms</td><td>14.120 ms</td><td>62000.0000</td><td>-</td><td>254,611 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf8-Async</td><td>3,017.55 ms</td><td>862.72 ms</td><td>47.289 ms</td><td>94000.0000</td><td>2000.0000</td><td>422,076 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf8-Buffered</td><td>631.50 ms</td><td>129.81 ms</td><td>7.115 ms</td><td>62000.0000</td><td>-</td><td>255,018 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf8-NoValidation</td><td>716.30 ms</td><td>1,116.74 ms</td><td>61.212 ms</td><td>57000.0000</td><td>-</td><td>233,515 KB</td>
+</tr><tr><td>WriteToFile</td><td>ODataMessageWriter-Utf8-NoValidation-Async</td><td>4,575.34 ms</td><td>15,089.53 ms</td><td>827.108 ms</td><td>89000.0000</td><td>2000.0000</td><td>400,969 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter</td><td>297.99 ms</td><td>1,155.81 ms</td><td>63.354 ms</td><td>16000.0000</td><td>-</td><td>68,511 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-ArrayPool</td><td>244.43 ms</td><td>322.23 ms</td><td>17.662 ms</td><td>16000.0000</td><td>1000.0000</td><td>68,532 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-ArrayPool-NoValidation</td><td>500.99 ms</td><td>2,303.54 ms</td><td>126.265 ms</td><td>16000.0000</td><td>1000.0000</td><td>68,548 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-Direct</td><td>237.54 ms</td><td>562.06 ms</td><td>30.808 ms</td><td>-</td><td>-</td><td>339 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-Direct-ArrayPool</td><td>118.96 ms</td><td>229.83 ms</td><td>12.598 ms</td><td>-</td><td>-</td><td>366 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-Direct-ArrayPool-ResourceGeneration</td><td>91.22 ms</td><td>127.84 ms</td><td>7.008 ms</td><td>2000.0000</td><td>-</td><td>9,351 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-Direct-NoValidation</td><td>106.53 ms</td><td>253.46 ms</td><td>13.893 ms</td><td>-</td><td>-</td><td>339 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-Direct-ResourceGeneration</td><td>96.38 ms</td><td>16.93 ms</td><td>0.928 ms</td><td>2000.0000</td><td>-</td><td>9,324 KB</td>
+</tr><tr><td>WriteToFile</td><td>Utf8JsonWriter-NoValidation</td><td>325.92 ms</td><td>1,298.01 ms</td><td>71.148 ms</td><td>16000.0000</td><td>-</td><td>68,511 KB</td>
 </tr></tbody></table>
 </body>
 </html>

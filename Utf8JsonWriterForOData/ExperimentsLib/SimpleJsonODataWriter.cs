@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// A writer for OData payloads based on OData Core's JsonWriter
@@ -36,7 +36,7 @@ namespace Utf8JsonWriterSamples
             {
                 jsonWriter.StartObjectScope();
                 jsonWriter.WriteName("@odata.context");
-                jsonWriter.WriteValue($"{serviceRoot.AbsoluteUri}/$metadata/#{entitySetName}");
+                jsonWriter.WriteValue($"{serviceRoot.AbsoluteUri}$metadata#{entitySetName}");
                 jsonWriter.WriteName("value");
                 jsonWriter.StartArrayScope();
             }

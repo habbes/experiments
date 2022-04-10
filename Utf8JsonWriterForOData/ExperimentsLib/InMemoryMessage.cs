@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     public class InMemoryMessage : IODataResponseMessageAsync, IContainerProvider, IDisposable
     {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// A writer for OData payloads based on OData Core's <see cref="IJsonWriterAsync"/>.
@@ -36,7 +36,7 @@ namespace Utf8JsonWriterSamples
             {
                 await jsonWriter.StartObjectScopeAsync();
                 await jsonWriter.WriteNameAsync("@odata.context");
-                await jsonWriter.WriteValueAsync($"{serviceRoot.AbsoluteUri}/$metadata/#{entitySetName}");
+                await jsonWriter.WriteValueAsync($"{serviceRoot.AbsoluteUri}$metadata#{entitySetName}");
                 await jsonWriter.WriteNameAsync("value");
                 await jsonWriter.StartArrayScopeAsync();
             }

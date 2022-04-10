@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Utf8JsonWriterSamples;
+using ExperimentsLib;
 
 namespace SimpleServer
 {
@@ -18,22 +18,40 @@ namespace SimpleServer
             }
 
             string serverName = args[0];
+            int port = 5000;
+            int dataSize = 50;
+            string host = "http://locahost";
             // rudimentary arg parser
-            int port = args.Where(a => a.StartsWith("--port="))
-                .Select(p => p.Split("=")[1])
-                .Select(int.Parse)
-                .FirstOrDefault();
+            try
+            {
+                port = args.Where(a => a.StartsWith("--port="))
+                    .Select(p => p.Split("=")[1])
+                    .Select(int.Parse)
+                    .FirstOrDefault();
 
-            if (port == 0) port = 5000;
+                if (port == 0) port = 5000;
 
-            int dataSize = args.Where(a => a.StartsWith("--dataCount="))
-                .Select(p => p.Split("=")[1])
-                .Select(int.Parse)
-                .FirstOrDefault();
-            if (dataSize == 0) dataSize = 50;
+                dataSize = args.Where(a => a.StartsWith("--dataCount="))
+                    .Select(p => p.Split("=")[1])
+                    .Select(int.Parse)
+                    .FirstOrDefault();
+                if (dataSize == 0) dataSize = 50;
+
+                host = args.Where(a => a.StartsWith("--host="))
+                    .Select(p => p.Split("=")[1])
+                    .FirstOrDefault();
+                if (host == null) host = "http://localhost";
+                if (!host.StartsWith("http")) host = $"http://{host}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to parse args {ex.Message}");
+                PrintHelp();
+                Environment.Exit(1);
+            }
 
             var data = CustomerDataSet.GetCustomers(dataSize);
-            var servers = DefaultServerCollection.Create(data);
+            var servers = DefaultServerCollection.Create(data, baseHost: host);
 
             var server = servers.StartServer(serverName, port);
             Console.WriteLine($"Using writer '{serverName}'. Response item count: {dataSize}.");
@@ -50,7 +68,7 @@ namespace SimpleServer
 
         static void PrintHelp()
         {
-            Console.WriteLine("Run with arguments: <serverName> [--port=N] [--length=N]");
+            Console.WriteLine("Run with arguments: <serverName> [--host=S] [--port=N] [--length=N]");
         }
     }
 }

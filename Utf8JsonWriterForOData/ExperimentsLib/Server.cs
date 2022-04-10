@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     using System;
     using System.Collections.Generic;
@@ -33,7 +33,6 @@ namespace Utf8JsonWriterSamples
         {
             _writer = responseWriter;
             _data = data;
-            _server = new HttpListener();
             _contentType = $"application/json; charset={charset}";
         }
 
@@ -42,17 +41,33 @@ namespace Utf8JsonWriterSamples
             Stop().Wait();
         }
 
-        public void Start(int port)
+        public void Start(string baseUrl)
         {
             if (_running)
             {
                 return;
             }
 
-            _running = true;
-            _server.Prefixes.Add($"http://*:{port}/");
+            _server = new HttpListener();
+            _server.Prefixes.Add(baseUrl.EndsWith("/") ? baseUrl : $"{baseUrl}/");
             _server.Start();
+           
+            _running = true;
             _runningTask = HandleRequests();
+        }
+
+        public void Start(int port)
+        {
+            try
+            {
+                Start($"http://*:{port}/");
+            }
+            catch (HttpListenerException ex)
+            {
+                Console.WriteLine($"Failed to start server on 'http://*:{port}': {ex.Message}");
+                Console.WriteLine($"Falling back to 'http://localhost:{port}");
+                Start($"http://localhost:{port}");
+            }
         }
 
         public async Task Stop()

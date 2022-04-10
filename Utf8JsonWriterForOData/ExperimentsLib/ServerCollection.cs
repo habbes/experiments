@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utf8JsonWriterSamples
+namespace ExperimentsLib
 {
     /// <summary>
     /// Manages a collection of servers that can be started and stopped
@@ -14,18 +14,18 @@ namespace Utf8JsonWriterSamples
     public class ServerCollection<T>
     {
         T data;
-        List<(string name, Server<T> server)> servers = new();
-        int nextPort;
+        List<Entry> servers = new();
+        string baseHost;
 
-        public ServerCollection(T data)
+        public ServerCollection(T data, string baseHostUrl)
         {
             this.data = data;
+            this.baseHost = baseHostUrl;
         }
 
         public void AddServer(string name, string charset, IServerWriter<T> serverWriter)
         {
-            servers.Add((name, new Server<T>(serverWriter, data, charset: charset)));
-            nextPort++;
+            servers.Add(new Entry(name, serverWriter, new Server<T>(serverWriter, data, charset)));
         }
 
         public void AddServers(params (string name, string charset, IServerWriter<T> serverWriter)[] servers)
@@ -36,37 +36,60 @@ namespace Utf8JsonWriterSamples
             }
         }
 
-        public void StartServers(int startPort = 8080)
+        public IServerWriter<T> GetWriter(string name)
+        {
+            return FindEntry(name).Writer;
+        }
+
+        public void StartServers(int startPort = 9000)
         {
             int port = startPort;
-            foreach (var (name, server) in servers)
+            foreach (var entry in servers)
             {
-                server.Start(port);
-                Console.WriteLine($"{name} server running on http://localhost:{port}");
+                entry.Server.Start($"{baseHost}:{port}");
+                Console.WriteLine($"{entry.Name} server running on {baseHost}:{port}");
                 port++;
             }
         }
 
         public Server<T> StartServer(string name, int port)
         {
-            Server<T> server = servers
-                .Where(s => s.name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                .Select(s => s.server)
-                .FirstOrDefault();
+            Server<T> server = FindEntry(name).Server;
 
-            if (server == null)
-            {
-                throw new Exception($"Server not found '{name}'");
-            }
-
-            server.Start(port);
+            server.Start($"{baseHost}:{port}");
             return server;
         }
 
         public async Task StopServers()
         {
-            await Task.WhenAll(servers.Select(item => item.server.Stop()));
+            await Task.WhenAll(servers.Select(item => item.Server.Stop()));
         }
 
+        public IEnumerable<string> GetServerNames()
+        {
+            var names = servers.Select(r => r.Name);
+
+            foreach (var name in names)
+            {
+                Console.WriteLine(name);
+            }
+
+            return names;
+        }
+
+        private Entry FindEntry(string name)
+        {
+            Entry entry = servers
+                .FirstOrDefault(entry => entry.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (entry == null)
+            {
+                throw new Exception($"Server not found '{name}'");
+            }
+
+            return entry;
+        }
+
+        internal record Entry(string Name, IServerWriter<T> Writer, Server<T> Server);
     }
 }
