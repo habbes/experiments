@@ -11,7 +11,7 @@ jobs:
       writer: 'ODataMessageWriter-Utf8'
       port: 5000
       count: 50
-    arguments: '{{writer}} --port={{port}} --dataCount={{count}}'
+    arguments: '{{writer}} --host=* --port={{port}} --dataCount={{count}}'
     
 
 scenarios:
@@ -77,4 +77,15 @@ profiles:
           - http://asp-perf-db:5001
         variables:
           serverAddress: 10.0.0.110
+  remote-win:
+    jobs:
+      application:
+        endpoints:
+          - http://20.231.35.55:5010
+      load:
+        endpoints:
+          - http://localhost:5010
+        variables:
+          serverAddress: 20.231.35.55
+
     

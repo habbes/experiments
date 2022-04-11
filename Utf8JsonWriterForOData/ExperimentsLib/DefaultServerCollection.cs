@@ -21,12 +21,12 @@ namespace ExperimentsLib
                 ("Utf8JsonWriter-Direct", "utf-8", new Utf8JsonWriterBasicServerWriter(stream => new Utf8JsonWriter(stream))),
                 ("Utf8JsonWriter-Direct-NoValidation", "utf-8", new Utf8JsonWriterBasicServerWriter(
                     stream => new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))),
-                ("Utf8JsonWriter-Direct-ResourceGeneration", "utf-8", new Utf8JsonWriterBasicServerWriter(
-                    stream => new Utf8JsonWriter(stream), simulateResourceGeneration: true)),
-                ("Utf8JsonWriter-Direct-ArrayPool", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
-                    bufferWriter => new Utf8JsonWriter(bufferWriter))),
-                ("Utf8JsonWriter-Direct-ArrayPool-ResourceGeneration", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
-                    bufferWriter => new Utf8JsonWriter(bufferWriter), simulateResourceGeneration: true)),
+                ("Utf8JsonWriter-Direct-ResourceGeneration-NoValidation", "utf-8", new Utf8JsonWriterBasicServerWriter(
+                    stream => new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }), simulateResourceGeneration: true)),
+                ("Utf8JsonWriter-Direct-ArrayPool-NoValidation", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
+                    bufferWriter => new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { SkipValidation = true }))),
+                ("Utf8JsonWriter-Direct-ArrayPool-ResourceGeneration-NoValidation", "utf-8", new Utf8JsonWriterBasicServerWriterWithArrayPool(
+                    bufferWriter => new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { SkipValidation = true }), simulateResourceGeneration: true)),
 
                 ("Utf8JsonWriter", "utf-8", new Utf8JsonWriterServerWriter(stream => new Utf8JsonWriter(stream))),
                 ("Utf8JsonWriter-NoValidation", "utf-8", new Utf8JsonWriterServerWriter(stream =>
@@ -37,8 +37,12 @@ namespace ExperimentsLib
 
                 ("ODataJsonWriter-Direct", "utf-8", new ODataJsonWriterBasicServerWriter(
                     stream => stream.CreateUtf8ODataJsonWriter())),
+                ("ODataJsonWriter-Direct-Buffered", "utf-8", new ODataJsonWriterBasicServerWriter(
+                    stream => new BufferedStream(stream, BufferSize).CreateUtf8ODataJsonWriter())),
                 ("ODataJsonWriter-Direct-ResourceGeneration", "utf-8", new ODataJsonWriterBasicServerWriter(
                     stream => stream.CreateUtf8ODataJsonWriter(), simulateTypedResourceGeneration: true)),
+                ("ODataJsonWriter-Direct-ResourceGeneration-Buffered", "utf-8", new ODataJsonWriterBasicServerWriter(
+                    stream => new BufferedStream(stream, BufferSize).CreateUtf8ODataJsonWriter(), simulateTypedResourceGeneration: true)),
 
                 ("ODataJsonWriter-Direct-Async", "utf-8", new ODataJsonWriterAsyncBasicServerWriter(
                     stream => stream.CreateUtf8ODataJsonWriterAsync())),

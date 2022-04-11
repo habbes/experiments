@@ -7,11 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ExperimentsLib;
+using BenchmarkDotNet.Order;
 
 namespace JsonWriterBenchmarks
 {
     [MemoryDiagnoser]
+    [Orderer(SummaryOrderPolicy.Method, MethodOrderPolicy.Declared)]
     //[EventPipeProfiler(EventPipeProfile.CpuSampling)]
     //[ShortRunJob]
     public class Benchmarks
