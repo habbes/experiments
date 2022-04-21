@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonWriterBenchmarks", "..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleServer", "..\SimpleServer\SimpleServer.csproj", "{E41E01E7-4AC5-45E6-A13B-CFD8C6BBF483}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExperimentTests", "..\ExperimentTests\ExperimentTests.csproj", "{00A65DA4-FD2A-4E1E-A446-80BA32530A4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExperimentTests", "..\ExperimentTests\ExperimentTests.csproj", "{00A65DA4-FD2A-4E1E-A446-80BA32530A4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestServer", "..\TestServer\TestServer.csproj", "{232B09F2-1E5B-4B11-B2E9-EA12CA7572E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{00A65DA4-FD2A-4E1E-A446-80BA32530A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00A65DA4-FD2A-4E1E-A446-80BA32530A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00A65DA4-FD2A-4E1E-A446-80BA32530A4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{232B09F2-1E5B-4B11-B2E9-EA12CA7572E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{232B09F2-1E5B-4B11-B2E9-EA12CA7572E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{232B09F2-1E5B-4B11-B2E9-EA12CA7572E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{232B09F2-1E5B-4B11-B2E9-EA12CA7572E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
