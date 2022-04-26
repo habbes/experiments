@@ -1,407 +1,623 @@
 # Loadtests results
 
-## baseline
-```
- crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=baseline --application.options.counterProviders System.Runtime
-[04:48:44.339] Running session 'c627e8b0510245c1a33340f6a85518c1' with description ''
-[04:48:45.098] Starting job 'application' ...
-[04:48:45.403] Submitted job: http://asp-perf-win:5001/jobs/14
-[04:48:46.052] 'application' has been selected by the server ...
-[04:48:46.054] Using local folder: "C:\Users\clhabins\source\repos\experiments\Utf8JsonWriterForOData\src"
-[04:49:16.272] Uploading C:\Users\clhabins\AppData\Local\Temp\tmpEC42.tmp (76,624KB)
-[04:49:25.524] 'application' is now building ... http://asp-perf-win:5001/jobs/14/buildlog
-[04:49:30.035] 'application' is running ... http://asp-perf-win:5001/jobs/14/output
-[04:49:31.063] Starting job 'load' ...
-[04:49:31.360] Submitted job: http://asp-perf-db:5001/jobs/9
-[04:49:33.257] 'load' has been selected by the server ...
-[04:49:33.551] 'load' is now building ... http://asp-perf-db:5001/jobs/9/buildlog
-[04:50:20.242] Stopping job 'load' ...
-[04:50:22.532] Deleting job 'load' ...
-[04:50:23.132] Stopping job 'application' ...
-[04:50:25.943] Deleting job 'application' ...
+## Results summary
 
+Results on lab machines:
+
+|Writer | Total Requests | Avg latency (ms) | Avg. RPS
+--------|----------------|------------------|---------
+ODataMessageWriter-Utf8 | 239,820 | 16 | 7,993
+ODataMessageWriter-NoOp | 288,813 | 13 | 9,626
+ODataMessageWriter-Utf8-Async | 100,031 | 38 | 3,332
+ODataJsonWriter-Utf8 | 786,545 | 4.9 | 26,227
+Utf8JsonWriter-ArrayPool-NoValidation | 959,890 | 3.4 | 32,007
+ODataJsonWriter-Utf8-Async | 269,446 | 14 | 8,983
+ODataJsonWriter-Direct | 1,189,732 | 3 | 39,689
+Utf8JsonWriter-Direct-ArrayPool-NoValidation | 1,678,664 | 2.3 | 55,984
+ODataJsonWriter-Direct-Async | 378,460 | 10 | 27,055
+
+## Raw results
+### ODataMessageWriter-Utf8
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-Utf8 --application.options.counterProviders System.Runtime
+```
+
+```
 | application                             |               |
 | --------------------------------------- | ------------- |
-| CPU Usage (%)                           | 99            |
-| Cores usage (%)                         | 1,182         |
-| Working Set (MB)                        | 158           |
-| Private Memory (MB)                     | 319           |
-| Build Time (ms)                         | 2,433         |
-| Start Time (ms)                         | 260           |
-| Published Size (KB)                     | 95,143        |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,206         |
+| Working Set (MB)                        | 197           |
+| Private Memory (MB)                     | 342           |
+| Build Time (ms)                         | 1,701         |
+| Start Time (ms)                         | 265           |
+| Published Size (KB)                     | 95,142        |
 | .NET Core SDK Version                   | 6.0.202       |
 | ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
 | .NET Runtime Version                    | 6.0.4+be98e88 |
-| Max CPU Usage (%)                       | 104           |
-| Max Working Set (MB)                    | 165           |
-| Max GC Heap Size (MB)                   | 92            |
-| Size of committed memory by the GC (MB) | 106           |
-| Max Number of Gen 0 GCs / sec           | 38.00         |
-| Max Number of Gen 1 GCs / sec           | 7.00          |
+| Max CPU Usage (%)                       | 102           |
+| Max Working Set (MB)                    | 205           |
+| Max GC Heap Size (MB)                   | 105           |
+| Size of committed memory by the GC (MB) | 149           |
+| Max Number of Gen 0 GCs / sec           | 59.00         |
+| Max Number of Gen 1 GCs / sec           | 12.00         |
 | Max Number of Gen 2 GCs / sec           | 1.00          |
-| Max Time in GC (%)                      | 10.00         |
-| Max Gen 0 Size (B)                      | 15,456,144    |
-| Max Gen 1 Size (B)                      | 7,725,200     |
-| Max Gen 2 Size (B)                      | 6,453,296     |
-| Max LOH Size (B)                        | 316,976       |
-| Max POH Size (B)                        | 1,499,248     |
-| Max Allocation Rate (B/sec)             | 3,147,361,992 |
-| Max GC Heap Fragmentation               | 64            |
-| # of Assemblies Loaded                  | 115           |
+| Max Time in GC (%)                      | 7.00          |
+| Max Gen 0 Size (B)                      | 8,324,800     |
+| Max Gen 1 Size (B)                      | 6,106,328     |
+| Max Gen 2 Size (B)                      | 12,975,552    |
+| Max LOH Size (B)                        | 841,320       |
+| Max POH Size (B)                        | 1,256,224     |
+| Max Allocation Rate (B/sec)             | 5,206,099,192 |
+| Max GC Heap Fragmentation               | 56            |
+| # of Assemblies Loaded                  | 116           |
 | Max Exceptions (#/s)                    | 0             |
-| Max Lock Contention (#/s)               | 11            |
-| Max ThreadPool Threads Count            | 33            |
-| Max ThreadPool Queue Length             | 74            |
-| Max ThreadPool Items (#/s)              | 128,177       |
+| Max Lock Contention (#/s)               | 5             |
+| Max ThreadPool Threads Count            | 34            |
+| Max ThreadPool Queue Length             | 61            |
+| Max ThreadPool Items (#/s)              | 20,504        |
 | Max Active Timers                       | 0             |
-| IL Jitted (B)                           | 241,070       |
-| Methods Jitted                          | 2,827         |
-
-
-| load                   |           |
-| ---------------------- | --------- |
-| CPU Usage (%)          | 41        |
-| Cores usage (%)        | 493       |
-| Working Set (MB)       | 41        |
-| Private Memory (MB)    | 110       |
-| Start Time (ms)        | 88        |
-| First Request (ms)     | 110       |
-| Requests               | 1,515,710 |
-| Bad responses          | 0         |
-| Latency 50th (us)      | 2,474     |
-| Latency 75th (us)      | 2,638     |
-| Latency 90th (us)      | 2,913     |
-| Latency 95th (us)      | 3,163     |
-| Latency 99th (us)      | 3,512     |
-| Mean latency (us)      | 2,529     |
-| Max latency (us)       | 255,530   |
-| Requests/sec           | 50,527    |
-| Requests/sec (max)     | 53,543    |
-| Read throughput (MB/s) | 668.38    |
-```
-
-## JsonSerializer
-```
- crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=baseline --application.options.counterProviders System.Runtime
-[04:48:44.339] Running session 'c627e8b0510245c1a33340f6a85518c1' with description ''
-[04:48:45.098] Starting job 'application' ...
-[04:48:45.403] Submitted job: http://asp-perf-win:5001/jobs/14
-[04:48:46.052] 'application' has been selected by the server ...
-[04:48:46.054] Using local folder: "C:\Users\clhabins\source\repos\experiments\Utf8JsonWriterForOData\src"
-[04:49:16.272] Uploading C:\Users\clhabins\AppData\Local\Temp\tmpEC42.tmp (76,624KB)
-[04:49:25.524] 'application' is now building ... http://asp-perf-win:5001/jobs/14/buildlog
-[04:49:30.035] 'application' is running ... http://asp-perf-win:5001/jobs/14/output
-[04:49:31.063] Starting job 'load' ...
-[04:49:31.360] Submitted job: http://asp-perf-db:5001/jobs/9
-[04:49:33.257] 'load' has been selected by the server ...
-[04:49:33.551] 'load' is now building ... http://asp-perf-db:5001/jobs/9/buildlog
-[04:50:20.242] Stopping job 'load' ...
-[04:50:22.532] Deleting job 'load' ...
-[04:50:23.132] Stopping job 'application' ...
-[04:50:25.943] Deleting job 'application' ...
-
-| application                             |               |
-| --------------------------------------- | ------------- |
-| CPU Usage (%)                           | 99            |
-| Cores usage (%)                         | 1,182         |
-| Working Set (MB)                        | 158           |
-| Private Memory (MB)                     | 319           |
-| Build Time (ms)                         | 2,433         |
-| Start Time (ms)                         | 260           |
-| Published Size (KB)                     | 95,143        |
-| .NET Core SDK Version                   | 6.0.202       |
-| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
-| .NET Runtime Version                    | 6.0.4+be98e88 |
-| Max CPU Usage (%)                       | 104           |
-| Max Working Set (MB)                    | 165           |
-| Max GC Heap Size (MB)                   | 92            |
-| Size of committed memory by the GC (MB) | 106           |
-| Max Number of Gen 0 GCs / sec           | 38.00         |
-| Max Number of Gen 1 GCs / sec           | 7.00          |
-| Max Number of Gen 2 GCs / sec           | 1.00          |
-| Max Time in GC (%)                      | 10.00         |
-| Max Gen 0 Size (B)                      | 15,456,144    |
-| Max Gen 1 Size (B)                      | 7,725,200     |
-| Max Gen 2 Size (B)                      | 6,453,296     |
-| Max LOH Size (B)                        | 316,976       |
-| Max POH Size (B)                        | 1,499,248     |
-| Max Allocation Rate (B/sec)             | 3,147,361,992 |
-| Max GC Heap Fragmentation               | 64            |
-| # of Assemblies Loaded                  | 115           |
-| Max Exceptions (#/s)                    | 0             |
-| Max Lock Contention (#/s)               | 11            |
-| Max ThreadPool Threads Count            | 33            |
-| Max ThreadPool Queue Length             | 74            |
-| Max ThreadPool Items (#/s)              | 128,177       |
-| Max Active Timers                       | 0             |
-| IL Jitted (B)                           | 241,070       |
-| Methods Jitted                          | 2,827         |
-
-
-| load                   |           |
-| ---------------------- | --------- |
-| CPU Usage (%)          | 41        |
-| Cores usage (%)        | 493       |
-| Working Set (MB)       | 41        |
-| Private Memory (MB)    | 110       |
-| Start Time (ms)        | 88        |
-| First Request (ms)     | 110       |
-| Requests               | 1,515,710 |
-| Bad responses          | 0         |
-| Latency 50th (us)      | 2,474     |
-| Latency 75th (us)      | 2,638     |
-| Latency 90th (us)      | 2,913     |
-| Latency 95th (us)      | 3,163     |
-| Latency 99th (us)      | 3,512     |
-| Mean latency (us)      | 2,529     |
-| Max latency (us)       | 255,530   |
-| Requests/sec           | 50,527    |
-| Requests/sec (max)     | 53,543    |
-| Read throughput (MB/s) | 668.38    |
-```
-
-## Utf8JsonWriter-Direct-ArrayPool-NoValidation
-
-```
- crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=Utf8JsonWriter-Direct-ArrayPool-NoValidation --application.options.counterProviders System.Runtime
-[04:58:32.366] Running session 'caffa9108e004aa3b76f37234439d0c6' with description ''
-[04:58:33.052] Starting job 'application' ...
-[04:58:33.356] Submitted job: http://asp-perf-win:5001/jobs/16
-[04:58:35.312] 'application' has been selected by the server ...
-[04:58:35.314] Using local folder: "C:\Users\clhabins\source\repos\experiments\Utf8JsonWriterForOData\src"
-[04:58:43.941] Uploading C:\Users\clhabins\AppData\Local\Temp\tmpEA13.tmp (76,624KB)
-[04:58:52.750] 'application' is now building ... http://asp-perf-win:5001/jobs/16/buildlog
-[04:58:57.256] 'application' is running ... http://asp-perf-win:5001/jobs/16/output
-[04:58:58.305] Starting job 'load' ...
-[04:58:58.608] Submitted job: http://asp-perf-db:5001/jobs/11
-[04:59:00.509] 'load' has been selected by the server ...
-[04:59:00.808] 'load' is now building ... http://asp-perf-db:5001/jobs/11/buildlog
-[04:59:01.401] 'load' is running ... http://asp-perf-db:5001/jobs/11/output
-[04:59:47.458] Stopping job 'load' ...
-[04:59:49.700] Deleting job 'load' ...
-[04:59:50.294] Stopping job 'application' ...
-[04:59:53.415] Deleting job 'application' ...
-
-| application                             |               |
-| --------------------------------------- | ------------- |
-| CPU Usage (%)                           | 18            |
-| Cores usage (%)                         | 217           |
-| Working Set (MB)                        | 157           |
-| Private Memory (MB)                     | 317           |
-| Build Time (ms)                         | 1,635         |
-| Start Time (ms)                         | 259           |
-| Published Size (KB)                     | 95,143        |
-| .NET Core SDK Version                   | 6.0.202       |
-| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
-| .NET Runtime Version                    | 6.0.4+be98e88 |
-| Max CPU Usage (%)                       | 18            |
-| Max Working Set (MB)                    | 163           |
-| Max GC Heap Size (MB)                   | 87            |
-| Size of committed memory by the GC (MB) | 104           |
-| Max Number of Gen 0 GCs / sec           | 5.00          |
-| Max Number of Gen 1 GCs / sec           | 1.00          |
-| Max Number of Gen 2 GCs / sec           | 1.00          |
-| Max Time in GC (%)                      | 0.00          |
-| Max Gen 0 Size (B)                      | 7,859,536     |
-| Max Gen 1 Size (B)                      | 9,457,368     |
-| Max Gen 2 Size (B)                      | 4,873,288     |
-| Max LOH Size (B)                        | 316,976       |
-| Max POH Size (B)                        | 1,845,328     |
-| Max Allocation Rate (B/sec)             | 282,570,080   |
-| Max GC Heap Fragmentation               | 51            |
-| # of Assemblies Loaded                  | 115           |
-| Max Exceptions (#/s)                    | 0             |
-| Max Lock Contention (#/s)               | 49            |
-| Max ThreadPool Threads Count            | 41            |
-| Max ThreadPool Queue Length             | 60            |
-| Max ThreadPool Items (#/s)              | 11,028        |
-| Max Active Timers                       | 0             |
-| IL Jitted (B)                           | 293,835       |
-| Methods Jitted                          | 3,431         |
+| IL Jitted (B)                           | 369,987       |
+| Methods Jitted                          | 5,066         |
 
 
 | load                   |         |
 | ---------------------- | ------- |
-| CPU Usage (%)          | 7       |
-| Cores usage (%)        | 85      |
-| Working Set (MB)       | 43      |
+| CPU Usage (%)          | 13      |
+| Cores usage (%)        | 158     |
+| Working Set (MB)       | 41      |
+| Private Memory (MB)    | 118     |
+| Start Time (ms)        | 90      |
+| First Request (ms)     | 169     |
+| Requests               | 239,820 |
+| Bad responses          | 0       |
+| Latency 50th (us)      | 15,976  |
+| Latency 75th (us)      | 16,236  |
+| Latency 90th (us)      | 16,653  |
+| Latency 95th (us)      | 16,989  |
+| Latency 99th (us)      | 17,916  |
+| Mean latency (us)      | 16,008  |
+| Max latency (us)       | 144,814 |
+| Requests/sec           | 7,993   |
+| Requests/sec (max)     | 10,528  |
+| Read throughput (MB/s) | 110.18  |
+```
+
+### ODataMessageWriter-Utf8-NoOp
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-NoOp --application.options.counterProviders System.Runtime
+```
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,202         |
+| Working Set (MB)                        | 184           |
+| Private Memory (MB)                     | 341           |
+| Build Time (ms)                         | 2,536         |
+| Start Time (ms)                         | 267           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 100           |
+| Max Working Set (MB)                    | 192           |
+| Max GC Heap Size (MB)                   | 98            |
+| Size of committed memory by the GC (MB) | 121           |
+| Max Number of Gen 0 GCs / sec           | 70.00         |
+| Max Number of Gen 1 GCs / sec           | 19.00         |
+| Max Number of Gen 2 GCs / sec           | 2.00          |
+| Max Time in GC (%)                      | 11.00         |
+| Max Gen 0 Size (B)                      | 7,528,368     |
+| Max Gen 1 Size (B)                      | 11,802,000    |
+| Max Gen 2 Size (B)                      | 15,187,144    |
+| Max LOH Size (B)                        | 6,484,112     |
+| Max POH Size (B)                        | 600,032       |
+| Max Allocation Rate (B/sec)             | 6,181,503,984 |
+| Max GC Heap Fragmentation               | 49            |
+| # of Assemblies Loaded                  | 116           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 40            |
+| Max ThreadPool Threads Count            | 37            |
+| Max ThreadPool Queue Length             | 81            |
+| Max ThreadPool Items (#/s)              | 22,841        |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 372,769       |
+| Methods Jitted                          | 5,139         |
+
+
+| load                   |         |
+| ---------------------- | ------- |
+| CPU Usage (%)          | 9       |
+| Cores usage (%)        | 109     |
+| Working Set (MB)       | 42      |
 | Private Memory (MB)    | 110     |
 | Start Time (ms)        | 88      |
-| First Request (ms)     | 119     |
-| Requests               | 139,985 |
+| First Request (ms)     | 169     |
+| Requests               | 288,813 |
 | Bad responses          | 0       |
-| Latency 50th (us)      | 28,111  |
-| Latency 75th (us)      | 28,622  |
-| Latency 90th (us)      | 29,109  |
-| Latency 95th (us)      | 29,425  |
-| Latency 99th (us)      | 30,279  |
-| Mean latency (us)      | 27,431  |
-| Max latency (us)       | 57,728  |
-| Requests/sec           | 4,668   |
-| Requests/sec (max)     | 15,718  |
-| Read throughput (MB/s) | 65.68   |
+| Latency 50th (us)      | 13,131  |
+| Latency 75th (us)      | 14,119  |
+| Latency 90th (us)      | 15,511  |
+| Latency 95th (us)      | 16,689  |
+| Latency 99th (us)      | 19,856  |
+| Mean latency (us)      | 13,291  |
+| Max latency (us)       | 150,533 |
+| Requests/sec           | 9,626   |
+| Requests/sec (max)     | 12,687  |
+| Read throughput (MB/s) | 1.28    |
 ```
 
-## ODataJsonWriter-Direct
+### ODataMessageWriter-Utf8-Async
 
 ```
- crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Direct --application.options.counterProviders System.Runtime
-[05:01:11.969] Running session 'c5ab321468544c168dfd076b5d25b8b0' with description ''
-[05:01:12.652] Starting job 'application' ...
-[05:01:12.956] Submitted job: http://asp-perf-win:5001/jobs/17
-[05:01:14.899] 'application' has been selected by the server ...
-[05:01:14.901] Using local folder: "C:\Users\clhabins\source\repos\experiments\Utf8JsonWriterForOData\src"
-[05:01:22.746] Uploading C:\Users\clhabins\AppData\Local\Temp\tmp597D.tmp (76,624KB)
-[05:01:36.440] 'application' is now building ... http://asp-perf-win:5001/jobs/17/buildlog
-[05:01:40.960] 'application' is running ... http://asp-perf-win:5001/jobs/17/output
-[05:01:42.004] Starting job 'load' ...
-[05:01:42.306] Submitted job: http://asp-perf-db:5001/jobs/12
-[05:01:44.224] 'load' has been selected by the server ...
-[05:01:44.818] 'load' is now building ... http://asp-perf-db:5001/jobs/12/buildlog
-[05:01:45.412] 'load' is running ... http://asp-perf-db:5001/jobs/12/output
-[05:02:31.583] Stopping job 'load' ...
-[05:02:33.835] Deleting job 'load' ...
-[05:02:34.434] Stopping job 'application' ...
-[05:02:37.242] Deleting job 'application' ...
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-Utf8-Async --application.options.counterProviders System.Runtime
+```
 
+```
 | application                             |               |
 | --------------------------------------- | ------------- |
-| CPU Usage (%)                           | 19            |
-| Cores usage (%)                         | 231           |
-| Working Set (MB)                        | 251           |
-| Private Memory (MB)                     | 351           |
-| Build Time (ms)                         | 1,639         |
-| Start Time (ms)                         | 265           |
-| Published Size (KB)                     | 95,143        |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,204         |
+| Working Set (MB)                        | 188           |
+| Private Memory (MB)                     | 343           |
+| Build Time (ms)                         | 2,512         |
+| Start Time (ms)                         | 269           |
+| Published Size (KB)                     | 95,142        |
 | .NET Core SDK Version                   | 6.0.202       |
 | ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
 | .NET Runtime Version                    | 6.0.4+be98e88 |
-| Max CPU Usage (%)                       | 19            |
-| Max Working Set (MB)                    | 283           |
-| Max GC Heap Size (MB)                   | 100           |
-| Size of committed memory by the GC (MB) | 236           |
-| Max Number of Gen 0 GCs / sec           | 5.00          |
-| Max Number of Gen 1 GCs / sec           | 2.00          |
+| Max CPU Usage (%)                       | 103           |
+| Max Working Set (MB)                    | 203           |
+| Max GC Heap Size (MB)                   | 93            |
+| Size of committed memory by the GC (MB) | 143           |
+| Max Number of Gen 0 GCs / sec           | 42.00         |
+| Max Number of Gen 1 GCs / sec           | 15.00         |
 | Max Number of Gen 2 GCs / sec           | 1.00          |
-| Max Time in GC (%)                      | 0.00          |
-| Max Gen 0 Size (B)                      | 31,507,280    |
-| Max Gen 1 Size (B)                      | 12,144,440    |
-| Max Gen 2 Size (B)                      | 5,694,128     |
+| Max Time in GC (%)                      | 4.00          |
+| Max Gen 0 Size (B)                      | 7,989,496     |
+| Max Gen 1 Size (B)                      | 13,640,224    |
+| Max Gen 2 Size (B)                      | 12,293,696    |
 | Max LOH Size (B)                        | 841,320       |
-| Max POH Size (B)                        | 1,326,208     |
-| Max Allocation Rate (B/sec)             | 367,682,584   |
-| Max GC Heap Fragmentation               | 58            |
-| # of Assemblies Loaded                  | 115           |
+| Max POH Size (B)                        | 1,898,888     |
+| Max Allocation Rate (B/sec)             | 3,774,487,728 |
+| Max GC Heap Fragmentation               | 53            |
+| # of Assemblies Loaded                  | 116           |
 | Max Exceptions (#/s)                    | 0             |
-| Max Lock Contention (#/s)               | 93            |
-| Max ThreadPool Threads Count            | 43            |
-| Max ThreadPool Queue Length             | 57            |
-| Max ThreadPool Items (#/s)              | 11,454        |
+| Max Lock Contention (#/s)               | 10            |
+| Max ThreadPool Threads Count            | 33            |
+| Max ThreadPool Queue Length             | 80            |
+| Max ThreadPool Items (#/s)              | 614,642       |
 | Max Active Timers                       | 0             |
-| IL Jitted (B)                           | 291,444       |
-| Methods Jitted                          | 3,492         |
+| IL Jitted (B)                           | 474,922       |
+| Methods Jitted                          | 6,077         |
 
 
 | load                   |         |
 | ---------------------- | ------- |
-| CPU Usage (%)          | 7       |
-| Cores usage (%)        | 86      |
+| CPU Usage (%)          | 5       |
+| Cores usage (%)        | 57      |
 | Working Set (MB)       | 41      |
 | Private Memory (MB)    | 110     |
-| Start Time (ms)        | 90      |
-| First Request (ms)     | 117     |
-| Requests               | 138,762 |
+| Start Time (ms)        | 85      |
+| First Request (ms)     | 208     |
+| Requests               | 100,031 |
 | Bad responses          | 0       |
-| Latency 50th (us)      | 28,345  |
-| Latency 75th (us)      | 29,026  |
-| Latency 90th (us)      | 29,689  |
-| Latency 95th (us)      | 30,108  |
-| Latency 99th (us)      | 31,094  |
-| Mean latency (us)      | 27,676  |
-| Max latency (us)       | 44,076  |
-| Requests/sec           | 4,626   |
-| Requests/sec (max)     | 9,358   |
-| Read throughput (MB/s) | 63.77   |
+| Latency 50th (us)      | 37,780  |
+| Latency 75th (us)      | 40,835  |
+| Latency 90th (us)      | 46,066  |
+| Latency 95th (us)      | 49,849  |
+| Latency 99th (us)      | 56,977  |
+| Mean latency (us)      | 38,404  |
+| Max latency (us)       | 171,514 |
+| Requests/sec           | 3,332   |
+| Requests/sec (max)     | 6,398   |
+| Read throughput (MB/s) | 45.64   |
 ```
 
-## ODataJsonWriter-Async
+### ODataJsonWriter-Utf8
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Utf8 --application.options.counterProviders System.Runtime
+```
+
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 99            |
+| Cores usage (%)                         | 1,189         |
+| Working Set (MB)                        | 209           |
+| Private Memory (MB)                     | 224           |
+| Build Time (ms)                         | 7,231         |
+| Start Time (ms)                         | 269           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 100           |
+| Max Working Set (MB)                    | 261           |
+| Max GC Heap Size (MB)                   | 104           |
+| Size of committed memory by the GC (MB) | 219           |
+| Max Number of Gen 0 GCs / sec           | 71.00         |
+| Max Number of Gen 1 GCs / sec           | 1.00          |
+| Max Number of Gen 2 GCs / sec           | 1.00          |
+| Max Time in GC (%)                      | 6.00          |
+| Max Gen 0 Size (B)                      | 8,134,776     |
+| Max Gen 1 Size (B)                      | 12,517,832    |
+| Max Gen 2 Size (B)                      | 5,711,664     |
+| Max LOH Size (B)                        | 841,320       |
+| Max POH Size (B)                        | 1,635,208     |
+| Max Allocation Rate (B/sec)             | 6,170,854,936 |
+| Max GC Heap Fragmentation               | 26            |
+| # of Assemblies Loaded                  | 116           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 26            |
+| Max ThreadPool Threads Count            | 40            |
+| Max ThreadPool Queue Length             | 76            |
+| Max ThreadPool Items (#/s)              | 63,132        |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 285,554       |
+| Methods Jitted                          | 3,426         |
+
+
+| load                   |                |
+| ---------------------- | -------------- |
+| CPU Usage (%)          | 28             |
+| Cores usage (%)        | 341            |
+| Working Set (MB)       | 52             |
+| Private Memory (MB)    | 148            |
+| Build Time (ms)        | 6,424          |
+| Start Time (ms)        | 86             |
+| Published Size (KB)    | 77,375         |
+| .NET Core SDK Version  | 3.1.418        |
+| ASP.NET Core Version   | 3.1.24+d1fa2cb |
+| .NET Runtime Version   | 3.1.24+3b38386 |
+| First Request (ms)     | 118            |
+| Requests               | 786,545        |
+| Bad responses          | 0              |
+| Latency 50th (us)      | 4,852          |
+| Latency 75th (us)      | 5,393          |
+| Latency 90th (us)      | 5,860          |
+| Latency 95th (us)      | 6,132          |
+| Latency 99th (us)      | 6,806          |
+| Mean latency (us)      | 4,877          |
+| Max latency (us)       | 189,311        |
+| Requests/sec           | 26,227         |
+| Requests/sec (max)     | 33,860         |
+| Read throughput (MB/s) | 361.64         |
+```
+
+### Utf8JsonWriter-ArrayPool-NoValidation
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=Utf8JsonWriter-ArrayPool-NoValidation --application.options.counterProviders System.Runtime
+```
+
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,198         |
+| Working Set (MB)                        | 162           |
+| Private Memory (MB)                     | 321           |
+| Build Time (ms)                         | 2,508         |
+| Start Time (ms)                         | 268           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 99            |
+| Max Working Set (MB)                    | 169           |
+| Max GC Heap Size (MB)                   | 89            |
+| Size of committed memory by the GC (MB) | 111           |
+| Max Number of Gen 0 GCs / sec           | 78.00         |
+| Max Number of Gen 1 GCs / sec           | 14.00         |
+| Max Number of Gen 2 GCs / sec           | 1.00          |
+| Max Time in GC (%)                      | 10.00         |
+| Max Gen 0 Size (B)                      | 1,312,280     |
+| Max Gen 1 Size (B)                      | 3,544,768     |
+| Max Gen 2 Size (B)                      | 7,876,992     |
+| Max LOH Size (B)                        | 192,544       |
+| Max POH Size (B)                        | 1,672,288     |
+| Max Allocation Rate (B/sec)             | 6,715,475,888 |
+| Max GC Heap Fragmentation               | 42            |
+| # of Assemblies Loaded                  | 116           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 7             |
+| Max ThreadPool Threads Count            | 36            |
+| Max ThreadPool Queue Length             | 81            |
+| Max ThreadPool Items (#/s)              | 73,711        |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 288,333       |
+| Methods Jitted                          | 3,392         |
+
+
+| load                   |         |
+| ---------------------- | ------- |
+| CPU Usage (%)          | 33      |
+| Cores usage (%)        | 394     |
+| Working Set (MB)       | 42      |
+| Private Memory (MB)    | 110     |
+| Start Time (ms)        | 89      |
+| First Request (ms)     | 115     |
+| Requests               | 959,890 |
+| Bad responses          | 0       |
+| Latency 50th (us)      | 3,864   |
+| Latency 75th (us)      | 4,290   |
+| Latency 90th (us)      | 4,678   |
+| Latency 95th (us)      | 4,984   |
+| Latency 99th (us)      | 5,749   |
+| Mean latency (us)      | 3,994   |
+| Max latency (us)       | 146,004 |
+| Requests/sec           | 32,007  |
+| Requests/sec (max)     | 41,150  |
+| Read throughput (MB/s) | 450.58  |
+```
+
+### ODataJsonWriter-Utf8-Async
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Utf8-Async --application.options.counterProviders System.Runtime
+```
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,201         |
+| Working Set (MB)                        | 277           |
+| Private Memory (MB)                     | 292           |
+| Build Time (ms)                         | 1,726         |
+| Start Time (ms)                         | 264           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 107           |
+| Max Working Set (MB)                    | 273           |
+| Max GC Heap Size (MB)                   | 110           |
+| Size of committed memory by the GC (MB) | 232           |
+| Max Number of Gen 0 GCs / sec           | 43.00         |
+| Max Number of Gen 1 GCs / sec           | 1.00          |
+| Max Number of Gen 2 GCs / sec           | 0.00          |
+| Max Time in GC (%)                      | 5.00          |
+| Max Gen 0 Size (B)                      | 2,505,864     |
+| Max Gen 1 Size (B)                      | 11,436,112    |
+| Max Gen 2 Size (B)                      | 5,467,360     |
+| Max LOH Size (B)                        | 841,320       |
+| Max POH Size (B)                        | 1,614,608     |
+| Max Allocation Rate (B/sec)             | 3,726,757,440 |
+| Max GC Heap Fragmentation               | 13            |
+| # of Assemblies Loaded                  | 116           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 12            |
+| Max ThreadPool Threads Count            | 31            |
+| Max ThreadPool Queue Length             | 65            |
+| Max ThreadPool Items (#/s)              | 1,548,525     |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 321,048       |
+| Methods Jitted                          | 3,821         |
+
+
+| load                   |         |
+| ---------------------- | ------- |
+| CPU Usage (%)          | 15      |
+| Cores usage (%)        | 177     |
+| Working Set (MB)       | 41      |
+| Private Memory (MB)    | 110     |
+| Start Time (ms)        | 84      |
+| First Request (ms)     | 130     |
+| Requests               | 269,466 |
+| Bad responses          | 0       |
+| Latency 50th (us)      | 14,316  |
+| Latency 75th (us)      | 14,789  |
+| Latency 90th (us)      | 15,065  |
+| Latency 95th (us)      | 15,369  |
+| Latency 99th (us)      | 16,273  |
+| Mean latency (us)      | 14,246  |
+| Max latency (us)       | 184,320 |
+| Requests/sec           | 8,983   |
+| Requests/sec (max)     | 17,492  |
+| Read throughput (MB/s) | 123.87  |
+```
+
+### ODataJsonWriter-Direct
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Direct --application.options.counterProviders System.Runtime
+```
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 98            |
+| Cores usage (%)                         | 1,180         |
+| Working Set (MB)                        | 267           |
+| Private Memory (MB)                     | 323           |
+| Build Time (ms)                         | 1,719         |
+| Start Time (ms)                         | 269           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 100           |
+| Max Working Set (MB)                    | 261           |
+| Max GC Heap Size (MB)                   | 204           |
+| Size of committed memory by the GC (MB) | 142           |
+| Max Number of Gen 0 GCs / sec           | 38.00         |
+| Max Number of Gen 1 GCs / sec           | 7.00          |
+| Max Number of Gen 2 GCs / sec           | 1.00          |
+| Max Time in GC (%)                      | 2.00          |
+| Max Gen 0 Size (B)                      | 15,088,728    |
+| Max Gen 1 Size (B)                      | 11,588,088    |
+| Max Gen 2 Size (B)                      | 9,591,808     |
+| Max LOH Size (B)                        | 841,320       |
+| Max POH Size (B)                        | 1,709,512     |
+| Max Allocation Rate (B/sec)             | 3,328,632,600 |
+| Max GC Heap Fragmentation               | 59            |
+| # of Assemblies Loaded                  | 115           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 15            |
+| Max ThreadPool Threads Count            | 32            |
+| Max ThreadPool Queue Length             | 78            |
+| Max ThreadPool Items (#/s)              | 94,999        |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 279,220       |
+| Methods Jitted                          | 3,322         |
+
+
+| load                   |           |
+| ---------------------- | --------- |
+| CPU Usage (%)          | 39        |
+| Cores usage (%)        | 468       |
+| Working Set (MB)       | 41        |
+| Private Memory (MB)    | 110       |
+| Start Time (ms)        | 89        |
+| First Request (ms)     | 116       |
+| Requests               | 1,189,732 |
+| Bad responses          | 0         |
+| Latency 50th (us)      | 3,167     |
+| Latency 75th (us)      | 3,415     |
+| Latency 90th (us)      | 3,776     |
+| Latency 95th (us)      | 3,996     |
+| Latency 99th (us)      | 4,464     |
+| Mean latency (us)      | 3,222     |
+| Max latency (us)       | 159,565   |
+| Requests/sec           | 39,689    |
+| Requests/sec (max)     | 47,517    |
+| Read throughput (MB/s) | 547.04    |
+```
+
+### Utf8JsonWriter-Direct-ArrayPool-NoValidation
+
+```
+crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=Utf8JsonWriter-Direct-ArrayPool-NoValidation --application.options.counterProviders System.Runtime
+```
+
+```
+| application                             |               |
+| --------------------------------------- | ------------- |
+| CPU Usage (%)                           | 97            |
+| Cores usage (%)                         | 1,167         |
+| Working Set (MB)                        | 161           |
+| Private Memory (MB)                     | 321           |
+| Build Time (ms)                         | 1,702         |
+| Start Time (ms)                         | 262           |
+| Published Size (KB)                     | 95,142        |
+| .NET Core SDK Version                   | 6.0.202       |
+| ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
+| .NET Runtime Version                    | 6.0.4+be98e88 |
+| Max CPU Usage (%)                       | 98            |
+| Max Working Set (MB)                    | 168           |
+| Max GC Heap Size (MB)                   | 85            |
+| Size of committed memory by the GC (MB) | 108           |
+| Max Number of Gen 0 GCs / sec           | 43.00         |
+| Max Number of Gen 1 GCs / sec           | 9.00          |
+| Max Number of Gen 2 GCs / sec           | 1.00          |
+| Max Time in GC (%)                      | 3.00          |
+| Max Gen 0 Size (B)                      | 14,526,392    |
+| Max Gen 1 Size (B)                      | 3,663,344     |
+| Max Gen 2 Size (B)                      | 7,374,320     |
+| Max LOH Size (B)                        | 316,976       |
+| Max POH Size (B)                        | 1,515,728     |
+| Max Allocation Rate (B/sec)             | 3,689,479,016 |
+| Max GC Heap Fragmentation               | 66            |
+| # of Assemblies Loaded                  | 115           |
+| Max Exceptions (#/s)                    | 0             |
+| Max Lock Contention (#/s)               | 8             |
+| Max ThreadPool Threads Count            | 34            |
+| Max ThreadPool Queue Length             | 84            |
+| Max ThreadPool Items (#/s)              | 141,313       |
+| Max Active Timers                       | 0             |
+| IL Jitted (B)                           | 283,031       |
+| Methods Jitted                          | 3,285         |
+
+
+| load                   |           |
+| ---------------------- | --------- |
+| CPU Usage (%)          | 43        |
+| Cores usage (%)        | 518       |
+| Working Set (MB)       | 42        |
+| Private Memory (MB)    | 110       |
+| Start Time (ms)        | 97        |
+| First Request (ms)     | 116       |
+| Requests               | 1,678,664 |
+| Bad responses          | 0         |
+| Latency 50th (us)      | 2,234     |
+| Latency 75th (us)      | 2,427     |
+| Latency 90th (us)      | 2,695     |
+| Latency 95th (us)      | 2,948     |
+| Latency 99th (us)      | 3,325     |
+| Mean latency (us)      | 2,283     |
+| Max latency (us)       | 276,915   |
+| Requests/sec           | 55,984    |
+| Requests/sec (max)     | 69,120    |
+| Read throughput (MB/s) | 787.99    |
+```
+
+### ODataJsonWriter-Direct-Async
 
 ```
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Direct-Async --application.options.counterProviders System.Runtime
-[05:07:53.129] Running session '9935b52c10314a57a931650f910d3494' with description ''
-[05:07:53.821] Starting job 'application' ...
-[05:07:54.126] Submitted job: http://asp-perf-win:5001/jobs/18
-[05:07:54.777] 'application' has been selected by the server ...
-[05:07:54.779] Using local folder: "C:\Users\clhabins\source\repos\experiments\Utf8JsonWriterForOData\src"
-[05:08:00.007] Uploading C:\Users\clhabins\AppData\Local\Temp\tmp7380.tmp (76,624KB)
-[05:08:05.676] 'application' is now building ... http://asp-perf-win:5001/jobs/18/buildlog
-[05:08:10.183] 'application' is running ... http://asp-perf-win:5001/jobs/18/output
-[05:08:11.211] Starting job 'load' ...
-[05:08:11.509] Submitted job: http://asp-perf-db:5001/jobs/13
-[05:08:13.409] 'load' has been selected by the server ...
-[05:08:13.706] 'load' is now building ... http://asp-perf-db:5001/jobs/13/buildlog
-[05:08:15.599] 'load' is running ... http://asp-perf-db:5001/jobs/13/output
-[05:09:01.633] Stopping job 'load' ...
-[05:09:03.849] Deleting job 'load' ...
-[05:09:04.443] Stopping job 'application' ...
-[05:09:07.623] Deleting job 'application' ...
+```
 
+```
 | application                             |               |
 | --------------------------------------- | ------------- |
-| CPU Usage (%)                           | 59            |
-| Cores usage (%)                         | 709           |
-| Working Set (MB)                        | 275           |
-| Private Memory (MB)                     | 346           |
-| Build Time (ms)                         | 1,649         |
+| CPU Usage (%)                           | 100           |
+| Cores usage (%)                         | 1,196         |
+| Working Set (MB)                        | 207           |
+| Private Memory (MB)                     | 336           |
+| Build Time (ms)                         | 1,696         |
 | Start Time (ms)                         | 260           |
-| Published Size (KB)                     | 95,143        |
+| Published Size (KB)                     | 95,142        |
 | .NET Core SDK Version                   | 6.0.202       |
 | ASP.NET Core Version                    | 6.0.4+f9ae0f5 |
 | .NET Runtime Version                    | 6.0.4+be98e88 |
-| Max CPU Usage (%)                       | 51            |
-| Max Working Set (MB)                    | 218           |
-| Max GC Heap Size (MB)                   | 159           |
-| Size of committed memory by the GC (MB) | 153           |
-| Max Number of Gen 0 GCs / sec           | 10.00         |
-| Max Number of Gen 1 GCs / sec           | 2.00          |
+| Max CPU Usage (%)                       | 102           |
+| Max Working Set (MB)                    | 257           |
+| Max GC Heap Size (MB)                   | 85            |
+| Size of committed memory by the GC (MB) | 214           |
+| Max Number of Gen 0 GCs / sec           | 33.00         |
+| Max Number of Gen 1 GCs / sec           | 6.00          |
 | Max Number of Gen 2 GCs / sec           | 1.00          |
-| Max Time in GC (%)                      | 0.00          |
-| Max Gen 0 Size (B)                      | 1,495,344     |
-| Max Gen 1 Size (B)                      | 15,112,872    |
-| Max Gen 2 Size (B)                      | 7,073,784     |
+| Max Time in GC (%)                      | 2.00          |
+| Max Gen 0 Size (B)                      | 12,882,288    |
+| Max Gen 1 Size (B)                      | 11,372,160    |
+| Max Gen 2 Size (B)                      | 10,127,728    |
 | Max LOH Size (B)                        | 841,320       |
-| Max POH Size (B)                        | 1,273,208     |
-| Max Allocation Rate (B/sec)             | 781,178,544   |
-| Max GC Heap Fragmentation               | 2             |
+| Max POH Size (B)                        | 1,334,520     |
+| Max Allocation Rate (B/sec)             | 2,915,923,008 |
+| Max GC Heap Fragmentation               | 66            |
 | # of Assemblies Loaded                  | 115           |
 | Max Exceptions (#/s)                    | 0             |
-| Max Lock Contention (#/s)               | 87            |
-| Max ThreadPool Threads Count            | 36            |
-| Max ThreadPool Queue Length             | 63            |
-| Max ThreadPool Items (#/s)              | 612,116       |
+| Max Lock Contention (#/s)               | 15            |
+| Max ThreadPool Threads Count            | 34            |
+| Max ThreadPool Queue Length             | 62            |
+| Max ThreadPool Items (#/s)              | 2,313,874     |
 | Max Active Timers                       | 0             |
-| IL Jitted (B)                           | 320,759       |
-| Methods Jitted                          | 3,805         |
+| IL Jitted (B)                           | 313,504       |
+| Methods Jitted                          | 3,672         |
 
 
 | load                   |         |
 | ---------------------- | ------- |
-| CPU Usage (%)          | 6       |
-| Cores usage (%)        | 78      |
-| Working Set (MB)       | 41      |
-| Private Memory (MB)    | 110     |
-| Start Time (ms)        | 88      |
+| CPU Usage (%)          | 18      |
+| Cores usage (%)        | 221     |
+| Working Set (MB)       | 42      |
+| Private Memory (MB)    | 119     |
+| Start Time (ms)        | 92      |
 | First Request (ms)     | 127     |
-| Requests               | 118,682 |
+| Requests               | 378,460 |
 | Bad responses          | 0       |
-| Latency 50th (us)      | 32,490  |
-| Latency 75th (us)      | 33,182  |
-| Latency 90th (us)      | 34,360  |
-| Latency 95th (us)      | 35,127  |
-| Latency 99th (us)      | 36,386  |
-| Mean latency (us)      | 32,359  |
-| Max latency (us)       | 55,675  |
-| Requests/sec           | 3,953   |
-| Requests/sec (max)     | 5,042   |
-| Read throughput (MB/s) | 54.54   |
+| Latency 50th (us)      | 9,964   |
+| Latency 75th (us)      | 10,362  |
+| Latency 90th (us)      | 10,703  |
+| Latency 95th (us)      | 10,831  |
+| Latency 99th (us)      | 11,283  |
+| Mean latency (us)      | 10,141  |
+| Max latency (us)       | 200,848 |
+| Requests/sec           | 12,625  |
+| Requests/sec (max)     | 27,055  |
+| Read throughput (MB/s) | 173.98  |
 ```
+

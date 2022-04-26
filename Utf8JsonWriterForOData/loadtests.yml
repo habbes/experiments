@@ -4,28 +4,32 @@ imports:
 jobs:
   server:
     source:
-      localFolder: .
-      project: SimpleServer/SimpleServer.csproj
+      localFolder: src
+      project: TestServer/TestServer.csproj
     readyStateText: Application started.
     variables:
       writer: 'ODataMessageWriter-Utf8'
       port: 5000
-      count: 50
-    arguments: '{{writer}} --host=* --port={{port}} --dataCount={{count}}'
+      host: "*"
+    arguments: '--urls=http://{{host}}:{{port}}'
     
 
 scenarios:
   highLoad:
     application:
       job: server
+      variables:
+        count: 1000
     load:
       job: bombardier
       variables:
         serverPort: 5000
-        connections: 128
+        connections: 512
         duration: 30
-        rate: 1000
-        path: /
+        timeout: 2
+        rate: 100
+        count: 1000
+        path: /customers/{{writer}}?count={{count}}
   singleRequests:
     application:
       job: server
@@ -36,7 +40,8 @@ scenarios:
         connections: 128
         duration: 30
         rate: 1
-        path: /
+        count: 50
+        path: /customers/{{writer}}?count={{count}}
   mediumLoad:
     application:
       job: server
@@ -46,18 +51,21 @@ scenarios:
         serverPort: 5000
         connections: 128
         duration: 30
-        rate: 200
-        path: /
+        count: 50
+        path: /customers/{{writer}}?count={{count}}
 
 profiles:
   local:
     variables:
       serverPort: 5000
       serverAddress: localhost
+      host: localhost
     jobs:
       application:
         endpoints:
           - http://localhost:5010
+      variables:
+        host: localhost
       load:
         endpoints:
           - http://localhost:5010
@@ -81,11 +89,12 @@ profiles:
     jobs:
       application:
         endpoints:
-          - http://20.231.35.55:5010
+          - http://52.186.145.58:5010
       load:
         endpoints:
           - http://localhost:5010
         variables:
-          serverAddress: 20.231.35.55
+          serverAddress: 52.186.145.58
+          serverPort: 5000
 
     
