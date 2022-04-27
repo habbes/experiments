@@ -50,7 +50,7 @@ ODataJsonWriter-Direct-Async|35,807|236|1,221|85
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-Utf8 --application.options.counterProviders System.Runtime
 ```
 
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -109,14 +109,14 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 7,993   |
 | Requests/sec (max)     | 10,528  |
 | Read throughput (MB/s) | 110.18  |
-```
+
 
 ### ODataMessageWriter-Utf8-NoOp
 
 ```
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-NoOp --application.options.counterProviders System.Runtime
 ```
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -175,7 +175,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 9,626   |
 | Requests/sec (max)     | 12,687  |
 | Read throughput (MB/s) | 1.28    |
-```
+
 
 ### ODataMessageWriter-Utf8-Async
 
@@ -183,7 +183,6 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataMessageWriter-Utf8-Async --application.options.counterProviders System.Runtime
 ```
 
-```
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -242,7 +241,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 3,332   |
 | Requests/sec (max)     | 6,398   |
 | Read throughput (MB/s) | 45.64   |
-```
+
 
 ### ODataJsonWriter-Utf8
 
@@ -250,7 +249,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Utf8 --application.options.counterProviders System.Runtime
 ```
 
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 99            |
@@ -314,7 +313,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 26,227         |
 | Requests/sec (max)     | 33,860         |
 | Read throughput (MB/s) | 361.64         |
-```
+
 
 ### Utf8JsonWriter-ArrayPool-NoValidation
 
@@ -322,7 +321,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=Utf8JsonWriter-ArrayPool-NoValidation --application.options.counterProviders System.Runtime
 ```
 
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -381,14 +380,14 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 32,007  |
 | Requests/sec (max)     | 41,150  |
 | Read throughput (MB/s) | 450.58  |
-```
+
 
 ### ODataJsonWriter-Utf8-Async
 
 ```
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Utf8-Async --application.options.counterProviders System.Runtime
 ```
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -447,14 +446,14 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 8,983   |
 | Requests/sec (max)     | 17,492  |
 | Read throughput (MB/s) | 123.87  |
-```
+
 
 ### ODataJsonWriter-Direct
 
 ```
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Direct --application.options.counterProviders System.Runtime
 ```
-```
+
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 98            |
@@ -513,7 +512,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 39,689    |
 | Requests/sec (max)     | 47,517    |
 | Read throughput (MB/s) | 547.04    |
-```
+
 
 ### Utf8JsonWriter-Direct-ArrayPool-NoValidation
 
@@ -521,7 +520,6 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=Utf8JsonWriter-Direct-ArrayPool-NoValidation --application.options.counterProviders System.Runtime
 ```
 
-```
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 97            |
@@ -580,7 +578,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 55,984    |
 | Requests/sec (max)     | 69,120    |
 | Read throughput (MB/s) | 787.99    |
-```
+
 
 ### ODataJsonWriter-Direct-Async
 
@@ -588,7 +586,6 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variable writer=ODataJsonWriter-Direct-Async --application.options.counterProviders System.Runtime
 ```
 
-```
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 100           |
@@ -647,7 +644,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 | Requests/sec           | 12,625  |
 | Requests/sec (max)     | 27,055  |
 | Read throughput (MB/s) | 173.98  |
-```
+
 
 ## Raw Results on Azure
 
@@ -657,7 +654,6 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile lab-win --variabl
 crank --config .\loadtests.yml --scenario mediumLoad --profile remote-win --variable writer=ODataMessageWriter-Utf8 --application.options.counterProviders System.Runtime
 ```
 
-```
 | application                             |               |
 | --------------------------------------- | ------------- |
 | CPU Usage (%)                           | 60            |
@@ -716,7 +712,7 @@ crank --config .\loadtests.yml --scenario mediumLoad --profile remote-win --vari
 | Requests/sec           | 584       |
 | Requests/sec (max)     | 3,077     |
 | Read throughput (MB/s) | 8.04      |
-```
+
 
 ### ODataMessageWriter-Utf8-Async
 
