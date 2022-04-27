@@ -117,7 +117,8 @@ namespace ExperimentsLib
                     await _writer.WritePayload(responseData, resp.OutputStream);
                     resp.Close();
                     sw.Stop();
-                    Console.WriteLine("Response time {0}ms, request {1}", sw.ElapsedMilliseconds, req.Url.ToString());
+                    // disable console logging cause it seems to affect CPU time, likely blocks for I/O
+                    //Console.WriteLine("Response time {0}ms, request {1}", sw.ElapsedMilliseconds, req.Url.ToString());
                 }
                 catch (Exception e)
                 {

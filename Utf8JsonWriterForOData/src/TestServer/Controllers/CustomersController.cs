@@ -20,7 +20,8 @@ namespace TestServer.Controllers
         public IEnumerable<Customer> Get([FromQuery] int? count)
         {
             var data = CustomerDataSet.GetCustomers(count ?? 100);
-            logger.LogInformation($"Retrieve {count} Customer entities from datasets.");
+            // logging affects observe results (lower CPU time, reqs/sec)
+            //logger.LogInformation($"Retrieve {count} Customer entities from datasets.");
             return data;
         }
     }

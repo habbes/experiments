@@ -23,24 +23,25 @@ public class TestOutputFormatter : TextOutputFormatter
         var httpContext = context.HttpContext;
         var services = httpContext.RequestServices;
 
-        var logger = services.GetRequiredService<ILogger<TestOutputFormatter>>();
+        //var logger = services.GetRequiredService<ILogger<TestOutputFormatter>>();
         var writers = services.GetRequiredService<ServerCollection<IEnumerable<Customer>>>();
 
         // the writer is specified in the route: customers/{writer}
         var writerName = httpContext.Request.RouteValues["writer"] as string;
-        logger.LogInformation($"Looking for requested writer '{writerName}'");
+        // disable logging because it seems to block CPU time
+        //logger.LogInformation($"Looking for requested writer '{writerName}'");
         var writer = writers.GetWriter(writerName);
 
-        logger.LogInformation($"Using writer '{writerName}' for serialization");
+        //logger.LogInformation($"Using writer '{writerName}' for serialization");
         var customers = (IEnumerable<Customer>)context.Object!;
 
         var stream = httpContext.Response.Body;
 
-        var sp = new Stopwatch();
-        sp.Start();
+        //var sp = new Stopwatch();
+        //sp.Start();
         await writer.WritePayload(customers, stream);
-        sp.Stop();
-        logger.LogInformation($"Serialization took {sp.ElapsedMilliseconds} ms");
+        //sp.Stop();
+        //logger.LogInformation($"Serialization took {sp.ElapsedMilliseconds} ms");
     }
 }
 
