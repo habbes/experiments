@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataClientDuplicateEdmTypeRaceCondition", "ODataClientDuplicateEdmTypeRaceCondition\ODataClientDuplicateEdmTypeRaceCondition.csproj", "{9A5021A4-A1C4-43A5-B14E-0FA54AECB0C6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Client", "..\..\..\..\..\odata.net\src\Microsoft.OData.Client\Microsoft.OData.Client.csproj", "{C4E72E08-3FAD-45DA-8545-1ED21694A84A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Core", "..\..\..\..\..\odata.net\src\Microsoft.OData.Core\Microsoft.OData.Core.csproj", "{E0789CEA-CE83-4A80-9F14-CC32F453DA3F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Edm", "..\..\..\..\..\odata.net\src\Microsoft.OData.Edm\Microsoft.OData.Edm.csproj", "{77B2B77B-A4CA-4B80-9719-F29356F8BF29}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A5021A4-A1C4-43A5-B14E-0FA54AECB0C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A5021A4-A1C4-43A5-B14E-0FA54AECB0C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A5021A4-A1C4-43A5-B14E-0FA54AECB0C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A5021A4-A1C4-43A5-B14E-0FA54AECB0C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4E72E08-3FAD-45DA-8545-1ED21694A84A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4E72E08-3FAD-45DA-8545-1ED21694A84A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4E72E08-3FAD-45DA-8545-1ED21694A84A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4E72E08-3FAD-45DA-8545-1ED21694A84A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0789CEA-CE83-4A80-9F14-CC32F453DA3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0789CEA-CE83-4A80-9F14-CC32F453DA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0789CEA-CE83-4A80-9F14-CC32F453DA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0789CEA-CE83-4A80-9F14-CC32F453DA3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B2B77B-A4CA-4B80-9719-F29356F8BF29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B2B77B-A4CA-4B80-9719-F29356F8BF29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B2B77B-A4CA-4B80-9719-F29356F8BF29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B2B77B-A4CA-4B80-9719-F29356F8BF29}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFB1CA92-2E4A-4617-9A51-C6054114C048}
+	EndGlobalSection
+EndGlobal

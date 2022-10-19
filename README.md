@@ -5,3 +5,4 @@
 - [OData Client memory leaks caused by static caches](./ODataClientStaticCacheModelMemoryLeak)
 - [Investigating Utf8JsonWriter for OData](./Utf8JsonWriterForOData/)
 - [Intro to SIMD in .NET](./DotNetSIMD/)
+- [OData Client race conditions cause duplicate edm types which cause validation errors](./ODataClientDuplicateEdmTypeRaceCondition/)

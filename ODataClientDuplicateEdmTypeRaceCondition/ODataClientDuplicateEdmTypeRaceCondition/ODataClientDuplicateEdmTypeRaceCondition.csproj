@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Connected Services\OData Service\OData ServiceCsdl.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Connected Services\OData Service\OData ServiceCsdl.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OData.Client" Version="7.12.4" />
+    <PackageReference Include="Microsoft.OData.Core" Version="7.12.4" />
+    <PackageReference Include="Microsoft.OData.Edm" Version="7.12.4" />
+    <PackageReference Include="Microsoft.Spatial" Version="7.12.4" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--<ProjectReference Include="..\..\..\..\..\..\odata.net\src\Microsoft.OData.Client\Microsoft.OData.Client.csproj" />-->
+  </ItemGroup>
+
+</Project>
