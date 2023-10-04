@@ -81,12 +81,17 @@ public class Benchmarks
 
         finalData = new List<Person>(data)
         {
-             new Person
-             {
-                 Name = "Sam",
-                 Age = 32,
-                 Active = false,
-                 Friends = new List<Person>()
+             
+        };
+
+        for (var i = 0; i < dataCount; i++)
+        {
+            finalData.Add(new Person
+            {
+                Name = "Sam",
+                Age = 32,
+                Active = false,
+                Friends = new List<Person>()
                 {
                     new Person
                     {
@@ -95,8 +100,8 @@ public class Benchmarks
                         Active = true
                     }
                 }
-             }
-        };
+            });
+        }
 
 
 
@@ -124,25 +129,29 @@ public class Benchmarks
         var token = JToken.Parse(jsonData);
         var array = (JArray)token;
 
-        array.Add(new JObject
+        for (var i = 0; i < dataCount; i++)
         {
-            {  "Name",  "Sam" },
-            { "Age", 32 },
-            { "Active", false },
+            array.Add(new JObject
             {
-                "Friends",
-                new JArray()
+                {  "Name",  "Sam" },
+                { "Age", 32 },
+                { "Active", false },
                 {
-                    new JObject
+                    "Friends",
+                    new JArray()
                     {
-                        { "Name", "Jale" },
-                        { "Age", 30 },
-                        { "Active", true },
-                        { "Friends", new JArray() }
+                        new JObject
+                        {
+                            { "Name", "Jale" },
+                            { "Age", 30 },
+                            { "Active", true },
+                            { "Friends", new JArray() }
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
+        
         stream.Position = 0;
         using StreamWriter sw = new StreamWriter(stream, leaveOpen: true);
         using JsonNet.JsonWriter writer = new JsonNet.JsonTextWriter(sw);
@@ -156,24 +165,28 @@ public class Benchmarks
         var node = JsonNode.Parse(jsonData);
         var array = node.AsArray();
 
-        array.Add(new JsonObject() {
-            {  "Name",  "Sam" },
-            { "Age", 32 },
-            { "Active", false },
-            {
-                "Friends",
-                new JsonArray()
+        for (var i = 0; i < dataCount; i++)
+        {
+            array.Add(new JsonObject() {
+                {  "Name",  "Sam" },
+                { "Age", 32 },
+                { "Active", false },
                 {
-                    new JsonObject
+                    "Friends",
+                    new JsonArray()
                     {
-                        { "Name", "Jale" },
-                        { "Age", 30 },
-                        { "Active", true },
-                        { "Friends", new JsonArray() }
+                        new JsonObject
+                        {
+                            { "Name", "Jale" },
+                            { "Age", 30 },
+                            { "Active", true },
+                            { "Friends", new JsonArray() }
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
+        
         stream.Position = 0;
         using var writer = new Utf8JsonWriter(stream);
         array.WriteTo(writer);
@@ -282,7 +295,7 @@ public class Benchmarks
         }
 
 
-        Check(count == dataCount + 1);
+        Check(count == dataCount * 2);
         return totalProperties + maxAge + allActive;
     }
 
@@ -348,7 +361,7 @@ public class Benchmarks
             }
         }
 
-        Check(count == dataCount + 1);
+        Check(count == dataCount * 2);
         return totalProperties + maxAge + allActive;
     }
 
@@ -412,7 +425,7 @@ public class Benchmarks
             }
         }
 
-        Check(count == dataCount + 1);
+        Check(count == dataCount * 2);
         return totalProperties + maxAge + allActive;
     }
 
