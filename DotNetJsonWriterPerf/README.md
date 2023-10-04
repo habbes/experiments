@@ -9,22 +9,22 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
   [Host]     : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
   DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 
-| Method                         | dataCount | Mean           | Error        | StdDev       | Median         | Gen0        | Gen1       | Gen2      | Allocated    |
-|------------------------------- |---------- |---------------:|-------------:|-------------:|---------------:|------------:|-----------:|----------:|-------------:|
-| SerializePayloadJToken         | 4         |     3,929.1 us |     52.92 us |     44.19 us |     3,920.0 us |    378.9063 |   355.4688 |         - |   2289.39 KB |
-| SerializePayloadJsonNode       | 4         |       943.8 us |     16.78 us |     21.81 us |       933.0 us |    127.9297 |   100.5859 |   83.0078 |    475.52 KB |
-| SerializeExtensibleJsonElement | 4         |       964.9 us |      7.94 us |      6.20 us |       964.7 us |    166.0156 |   166.0156 |  166.0156 |    629.51 KB |
-| SerializeJsonElement           | 4         |     1,001.0 us |     11.78 us |     10.44 us |     1,001.6 us |    166.0156 |   166.0156 |  166.0156 |     628.1 KB |
-| TraverseJToken                 | 4         |     4,333.4 us |    142.45 us |    420.02 us |     4,586.6 us |    414.0625 |   312.5000 |         - |   2363.37 KB |
-| TraverseJsonNode               | 4         |     2,121.7 us |     36.84 us |     55.14 us |     2,114.9 us |    304.6875 |   207.0313 |   42.9688 |   1594.85 KB |
-| TraverseJsonElement            | 4         |       938.0 us |     18.37 us |     34.95 us |       932.5 us |    124.0234 |   124.0234 |  124.0234 |    603.06 KB |
-| SerializePayloadJToken         | 1000      | 2,504,948.9 us | 39,978.89 us | 35,440.24 us | 2,499,998.0 us |  97000.0000 | 50000.0000 | 4000.0000 | 571696.23 KB |
-| SerializePayloadJsonNode       | 1000      |   256,216.1 us |  4,783.79 us |  7,724.94 us |   253,385.3 us |           - |          - |         - | 128025.77 KB |
-| SerializeExtensibleJsonElement | 1000      |   234,469.2 us |  2,141.78 us |  2,291.68 us |   234,337.8 us |           - |          - |         - | 167821.04 KB |
-| SerializeJsonElement           | 1000      |   251,918.6 us |  4,924.28 us | 10,808.90 us |   247,114.8 us |           - |          - |         - | 167819.63 KB |
-| TraverseJToken                 | 1000      | 2,457,853.5 us | 49,045.72 us | 58,385.44 us | 2,450,692.0 us | 101000.0000 | 52000.0000 | 4000.0000 | 591573.79 KB |
-| TraverseJsonNode               | 1000      | 1,333,522.3 us | 26,377.30 us | 54,473.71 us | 1,320,342.2 us |  58000.0000 | 30000.0000 | 3000.0000 |  399428.2 KB |
-| TraverseJsonElement            | 1000      |   209,719.7 us |  2,014.57 us |  2,474.07 us |   209,056.4 us |  12500.0000 |          - |         - | 153015.48 KB |
+| Method                         | dataCount | Mean           | Error        | StdDev       | Gen0        | Gen1       | Gen2      | Allocated    |
+|------------------------------- |---------- |---------------:|-------------:|-------------:|------------:|-----------:|----------:|-------------:|
+| SerializePayloadJToken         | 4         |     4,654.6 us |    154.00 us |    454.08 us |    375.0000 |   343.7500 |         - |    2289.4 KB |
+| SerializePayloadJsonNode       | 4         |       982.1 us |     18.46 us |     28.19 us |    126.9531 |    99.6094 |   82.0313 |    475.54 KB |
+| SerializeExtensibleJsonElement | 4         |       995.7 us |     15.43 us |     12.88 us |    166.0156 |   166.0156 |  166.0156 |    629.51 KB |
+| SerializeJsonElement           | 4         |     1,043.0 us |     20.71 us |     32.84 us |    166.0156 |   166.0156 |  166.0156 |     628.1 KB |
+| TraverseJToken                 | 4         |     3,755.0 us |     72.85 us |    111.25 us |    414.0625 |   328.1250 |         - |   2363.36 KB |
+| TraverseJsonNode               | 4         |     2,187.6 us |     43.47 us |     66.38 us |    285.1563 |   167.9688 |   46.8750 |    1594.8 KB |
+| TraverseJsonElement            | 4         |       913.1 us |     11.26 us |      9.98 us |    124.0234 |   124.0234 |  124.0234 |    603.06 KB |
+| SerializePayloadJToken         | 1000      | 2,512,583.7 us | 49,644.46 us | 46,437.46 us |  97000.0000 | 50000.0000 | 4000.0000 |  571696.2 KB |
+| SerializePayloadJsonNode       | 1000      |   261,621.4 us |  4,666.43 us |  6,984.50 us |           - |          - |         - | 128025.77 KB |
+| SerializeExtensibleJsonElement | 1000      |   235,467.0 us |  4,643.64 us |  6,509.73 us |           - |          - |         - | 167821.04 KB |
+| SerializeJsonElement           | 1000      |   244,851.4 us |  2,873.78 us |  3,836.42 us |           - |          - |         - | 167819.63 KB |
+| TraverseJToken                 | 1000      | 2,482,471.4 us | 49,006.54 us | 58,338.80 us | 101000.0000 | 52000.0000 | 4000.0000 | 591573.54 KB |
+| TraverseJsonNode               | 1000      | 1,335,478.0 us | 26,611.71 us | 47,302.29 us |  58000.0000 | 30000.0000 | 3000.0000 | 399428.35 KB |
+| TraverseJsonElement            | 1000      |   212,667.1 us |  3,372.30 us |  4,943.07 us |  12500.0000 |          - |         - | 153015.48 KB |
 
 **Legends**
 
