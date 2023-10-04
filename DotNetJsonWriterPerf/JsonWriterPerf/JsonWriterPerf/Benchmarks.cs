@@ -26,7 +26,7 @@ public class Benchmarks
 
 
     [Params(4, 1000)]
-    public int personCount;
+    public int dataCount;
 
     [GlobalSetup]
     public void Setup()
@@ -35,7 +35,7 @@ public class Benchmarks
 
         data = new List<Person>();
 
-        for (int i = 0; i < personCount; i++)
+        for (int i = 0; i < dataCount; i++)
         {
             var friends = new List<Person>();
             for (int j = 0; j < friendsCount; j++)
@@ -75,6 +75,8 @@ public class Benchmarks
                 AnotherInt = 25,
                 Friends = friends
             };
+
+            data.Add(person);
         }
 
         finalData = new List<Person>(data)
@@ -111,16 +113,17 @@ public class Benchmarks
 
     public string ReadStream()
     {
-        stream.Position = 0; 
+        stream.Position = 0;
         var reader = new StreamReader(stream, leaveOpen: true);
         return reader.ReadToEnd();
     }
 
     [Benchmark]
-    public void SerializePayloadJsonNet()
+    public void SerializePayloadJToken()
     {
         var token = JToken.Parse(jsonData);
         var array = (JArray)token;
+
         array.Add(new JObject
         {
             {  "Name",  "Sam" },
@@ -152,6 +155,7 @@ public class Benchmarks
     {
         var node = JsonNode.Parse(jsonData);
         var array = node.AsArray();
+
         array.Add(new JsonObject() {
             {  "Name",  "Sam" },
             { "Age", 32 },
@@ -220,10 +224,12 @@ public class Benchmarks
     {
         var array = (JArray)JToken.Parse(finalJsonData);
         int count = 0;
+        int totalProperties = 0;
         int maxAge = 0;
         int allActive = 0;
         foreach (var item in array)
         {
+            count++;
             var person = (JObject)item;
             foreach (var property in person)
             {
@@ -231,7 +237,7 @@ public class Benchmarks
                 if (key != null)
                 {
                     // useless statement to make sure these don't get optimized away
-                    count++;
+                    totalProperties++;
                 }
 
                 if (property.Value == null)
@@ -275,7 +281,9 @@ public class Benchmarks
             }
         }
 
-        return count + maxAge + allActive;
+
+        Check(count == dataCount + 1);
+        return totalProperties + maxAge + allActive;
     }
 
     [Benchmark]
@@ -283,10 +291,12 @@ public class Benchmarks
     {
         var array = JsonNode.Parse(finalJsonData)!.AsArray();
         int count = 0;
+        int totalProperties = 0;
         int maxAge = 0;
         int allActive = 0;
         foreach (var item in array)
         {
+            count++;
             var person = item!.AsObject();
             foreach (var property in person)
             {
@@ -294,7 +304,7 @@ public class Benchmarks
                 if (key != null)
                 {
                     // useless statement to make sure these don't get optimized away
-                    count++;
+                    totalProperties++;
                 }
 
                 if (property.Value == null)
@@ -338,7 +348,80 @@ public class Benchmarks
             }
         }
 
-        return count + maxAge + allActive;
+        Check(count == dataCount + 1);
+        return totalProperties + maxAge + allActive;
+    }
+
+    [Benchmark]
+    public int TraverseJsonElement()
+    {
+        var array = JsonDocument.Parse(finalJsonData)!.RootElement;
+        int count = 0;
+        int totalProperties = 0;
+        int maxAge = 0;
+        int allActive = 0;
+        foreach (var item in array.EnumerateArray())
+        {
+            count++;
+            foreach (var property in item.EnumerateObject())
+            {
+                var key = property.Name;
+                if (key != null)
+                {
+                    // useless statement to make sure these don't get optimized away
+                    totalProperties++;
+                }
+
+                if (property.Value.ValueKind == JsonValueKind.Null)
+                {
+                    continue;
+                }
+
+                if (key == "Friends")
+                {
+                    var friends = property.Value;
+                    foreach (var friend in friends.EnumerateArray())
+                    {
+                        foreach (var fProp in friend.EnumerateObject())
+                        {
+                            if (fProp.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                continue;
+                            }
+
+                            if (fProp.Name == "Active")
+                            {
+                                allActive += fProp.Value.GetBoolean() == true ? 1 : 0;
+                            }
+                            else if (fProp.Name == "Age")
+                            {
+                                maxAge += fProp.Value.GetInt32();
+                            }
+                        }
+                    }
+                }
+
+                if (property.Name == "Active")
+                {
+                    allActive += property.Value.GetBoolean() == true ? 1 : 0;
+                }
+                else if (property.Name == "Age")
+                {
+                    maxAge += property.Value.GetInt32();
+                }
+            }
+        }
+
+        Check(count == dataCount + 1);
+        return totalProperties + maxAge + allActive;
+    }
+
+    public void Check(bool test)
+    {
+        if (!test)
+        {
+            throw new Exception("Failed check");
+        }
     }
 
 }
