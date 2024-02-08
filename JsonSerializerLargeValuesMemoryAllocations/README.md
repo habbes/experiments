@@ -60,6 +60,8 @@ Statistics        Avg      Stdev        Max
 .\bombardier.exe -l -n 1000 -c 50 http://localhost:5174/escaped-string
 ```
 
+![alt text](escaped-string-char-allocations.png)
+
 ```sh
 Bombarding http://localhost:5174/escaped-string with 1000 request(s) using 50 connection(s)
  1000 / 1000 [=======================================================================================] 100.00% 253/s 3s
@@ -80,3 +82,4 @@ Statistics        Avg      Stdev        Max
 ```
 
 ![alt text](escaped-string-allocations.png)
+
