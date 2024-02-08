@@ -1,0 +1,16 @@
+@JsonSerializerLargeValuesMemoryAllocations_HostAddress = http://localhost:5174
+
+GET {{JsonSerializerLargeValuesMemoryAllocations_HostAddress}}/string/
+Accept: application/json
+
+###
+
+GET {{JsonSerializerLargeValuesMemoryAllocations_HostAddress}}/escaped-string/
+Accept: application/json
+
+###
+
+GET {{JsonSerializerLargeValuesMemoryAllocations_HostAddress}}/binary/
+Accept: application/json
+
+###
