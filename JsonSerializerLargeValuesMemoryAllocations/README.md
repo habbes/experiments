@@ -1,5 +1,9 @@
 # Serializing large values with System.Text.Json lead to large memory allocations in LOH
 
+This experiments demonstrates large allocations in LOH from `JsonSerializer` when serializing large strings or byte arrays. The issue occurs because `Utf8JsonWriter` buffers an entire value in memory before it can be written out to the output stream.
+
+This issue is discussed in more detail in [this blog post](https://blog.habbes.xyz/cs-jsonserializer-memory-issues-when-serializing-large-string-and-byte-array-values) and [this GitHub issue](https://github.com/dotnet/runtime/issues/67337).
+
 ## Large byte arrays to base-64 encoding
 
 ```sh
@@ -60,8 +64,6 @@ Statistics        Avg      Stdev        Max
 .\bombardier.exe -l -n 1000 -c 50 http://localhost:5174/escaped-string
 ```
 
-![alt text](escaped-string-char-allocations.png)
-
 ```sh
 Bombarding http://localhost:5174/escaped-string with 1000 request(s) using 50 connection(s)
  1000 / 1000 [=======================================================================================] 100.00% 253/s 3s
@@ -80,6 +82,8 @@ Statistics        Avg      Stdev        Max
     others - 0
   Throughput:     1.08GB/s
 ```
+
+![alt text](escaped-string-char-allocations.png)
 
 ![alt text](escaped-string-allocations.png)
 
