@@ -4,6 +4,15 @@ This experiments demonstrates large allocations in LOH from `JsonSerializer` whe
 
 This issue is discussed in more detail in [this blog post](https://blog.habbes.xyz/cs-jsonserializer-memory-issues-when-serializing-large-string-and-byte-array-values) and [this GitHub issue](https://github.com/dotnet/runtime/issues/67337).
 
+## Experiment
+
+The experiment is a simple API with 3 endpoints that return JSON payloads with a single `Data` field.
+- The `/string` endpoint returns a large string value (the source string contains 1,000,000 characters)
+- The `/escaped-string` endpoint returns a large string value that contains characters that will require escaping
+- The `/binary` endpoint returns a large base-64 string encoded from a source byte array with 1,000,000 bytes
+
+The experiment consists of making 1,000 concurrent requests from 50 connections using [bombardier](https://github.com/codesenberg/bombardier) while using [Visual Studio's .NET Object Allocation Tracking profiler](https://learn.microsoft.com/en-us/visualstudio/profiling/dotnet-alloc-tool) to monitor heap allocations.
+
 ## Large byte arrays to base-64 encoding
 
 ```sh
