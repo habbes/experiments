@@ -52,9 +52,7 @@ public class DataCollectionBenchmarks
     [Benchmark]
     public int GetItemByIndex()
     {
-        int first = fullCollection.GetItem(0);
         int middle = fullCollection.GetItem(fullCollection.GetLength() / 2);
-        int last = fullCollection.GetItem(fullCollection.GetLength() - 1);
-        return first + middle + last;
+        return middle;
     }
 }
