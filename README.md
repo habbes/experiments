@@ -7,4 +7,5 @@
 - [Intro to SIMD in .NET](./DotNetSIMD/)
 - [OData Client race conditions cause duplicate edm types which cause validation errors](./ODataClientDuplicateEdmTypeRaceCondition/)
 - [.NET's Utf8JsonWriter unnecessary buffer allocations when writing base64 values](./WriteBase64JsonMemoryRepro/)
+- [.NET's `JsonSerializer` large memory allocations when serializing large string and byte array values](./JsonSerializerLargeValuesMemoryAllocations/)
 - [Sample Data Structure Analysis](./SampleDataStructureAnalysis/)
