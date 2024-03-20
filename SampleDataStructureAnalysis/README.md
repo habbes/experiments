@@ -61,8 +61,10 @@ We'll analyse the Big-O runtime and space complexity of the different operations
 | Dynamic Array (Space)  | O(1) (amortized) | S: O(1) | S : O(1) |
 | Linked List (Time) | O(1) | O(n) | O(n)
 | Linked List (Space)             | O(1) | O(n) | O(n)
-| Balanced BST (Time) | O(logn) | O(logn) | O(n) [see this explanation](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.sortedset-1.enumerator.movenext?view=net-8.0)
-| Balanced BST (Space) | O(1) | O(1) | O(1)
+| Balanced BST (Time) | O(logn) | O(logn) | O(n) (see explanation below)
+| Balanced BST (Space) | O(1) | O(1) | O(h)
+
+Regarding iterating through a BST in sorted order, if we have the minimum-value node (lowest index in the sequence), the next index will either be the parent of that node or the left most value in the parent's right subtree. We can find the next node in O(1) amortized (overall O(n) for n nodes), but we have to use a stack to keep track of values (which is where the O(h) space complexity comes from). [This article](https://mariazacharia-k.medium.com/binary-search-tree-bst-iterator-e01b7b933594) explains the algorithm in more detail. We can also do a naive iteration in O(1) space, by manually searching for the next smallest node in the parent's subtree, the time complexity would be O(nlogn) worst case in this scenario.
 
 Beyond the Big-O complexity, here are some additional considerations:
 
