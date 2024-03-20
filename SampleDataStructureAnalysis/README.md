@@ -128,7 +128,7 @@ The array list takes up roughly the same amount of time (~1.1 and 1.6ms) to fetc
 This is expected because index-based access id O(1) for an array list.
 
 The look-up by index is faster in a sorted tree than an array list. The sorted tree look-up scales pretty well in a sorted tree, from the 1000 to 1,000,000 entries (1000x increase),
-the runtime only increases from 25 to 42ns (1.7x increase). However, the linked list scales poorly for this operation. Going from 582ns to 2,373,432ns (4370x increase), the latter figure is much higher
+the runtime only increases from 25 to 42ns (1.7x increase). However, the linked list scales poorly for this operation. Going from 582ns to 2,373,432ns (~4000x increase), the latter figure is much higher
 than I would expect and would make a good subject for a follow-up investigation.
 
 The decision between an linked list and sorted tree would be harder for this scenario because we have to make a trade-off between insertion time and retrieval time. But the array list is much faster across all operations compared to the other data structures (at least 22x faster on index-based retrieval and 31x faster on insertion).
@@ -178,9 +178,9 @@ Here are the results, showing how many entries it was able to add to the collect
 
 | Data Structure | Memory limit | Total Entries | Time till crash
 |-----------------|--------------|---------------|
-Dynamic array | 33,444,432 | 982ms
-Linked list | 8,267,118  | 4,629ms
-Sorted tree | 7,087,458 | 7,911ms
+|Dynamic array | 33,444,432 | 982ms|
+|Linked list | 8,267,118  | 4,629ms|
+|Sorted tree | 7,087,458 | 7,911ms|
 
 ### Selecting a winner
 
