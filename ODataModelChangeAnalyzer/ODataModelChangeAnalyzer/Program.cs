@@ -9,13 +9,19 @@ var newModel = ReadModel("TripPinUpdatedModel.csdl");
 var changeAnalyzer = new ChangesAnalyzer(originalModel, newModel);
 var changes = changeAnalyzer.AnalyzeChanges();
 
+var changesWithLocations = changes.Select(change => new ChangeWithLocation(change, change.Target.Location() as CsdlLocation));
+
 Console.WriteLine("Detected changes:\n");
 
 int count = 0;
+
 foreach (var change in changes)
 {
-    Console.WriteLine(change);
     count++;
+    var location = change.Target.Location() as CsdlLocation;
+    Console.WriteLine(change);
+    Console.WriteLine($"At line: {location!.LineNumber} pos: {location!.LinePosition}");
+    Console.WriteLine();
 }
 
 Console.WriteLine($"\nFound {count} changes.");
@@ -28,3 +34,5 @@ IEdmModel ReadModel(string path)
     var model = CsdlReader.Parse(xmlReader);
     return model;
 }
+
+record ChangeWithLocation(object Change, CsdlLocation? Location);

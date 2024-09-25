@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ODataModelChangeAnalyzer;
@@ -18,6 +19,7 @@ internal interface IModelChange
     public IEdmElement Target { get; }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 internal enum ChangeKind
 {
     Addition,
