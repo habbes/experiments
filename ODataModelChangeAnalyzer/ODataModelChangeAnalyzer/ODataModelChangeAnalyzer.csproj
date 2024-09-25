@@ -15,6 +15,9 @@
     <None Update="TripPinBaseModel.csdl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TripPinUpdatedModel.csdl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

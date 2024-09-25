@@ -4,7 +4,7 @@ using ODataModelChangeAnalyzer;
 using System.Xml;
 
 var originalModel = ReadModel("TripPinBaseModel.csdl");
-var newModel = ReadModel("TripPinBaseModel.csdl");
+var newModel = ReadModel("TripPinUpdatedModel.csdl");
 
 var changeAnalyzer = new ChangesAnalyzer(originalModel, newModel);
 var changes = changeAnalyzer.AnalyzeChanges();
