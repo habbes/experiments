@@ -1,5 +1,6 @@
 ﻿using Microsoft.OData.Edm;
 using Microsoft.OData.Edm.Vocabularies;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ODataModelChangeAnalyzer;
@@ -45,9 +46,9 @@ internal class ChangesAnalyzer
 
     protected void AnalyzeChanges(IEdmSchemaElement originalElement, IEdmSchemaElement newElement)
     {
-        if (originalElement is IEdmSchemaType && newElement is IEdmSchemaType)
+        if (originalElement is IEdmSchemaType originalSchemaType && newElement is IEdmSchemaType newSchemaType)
         {
-            this.AnalyzeChanges(originalElement, newElement);
+            this.AnalyzeChanges(originalSchemaType, newSchemaType);
         }
         else if (originalElement is IEdmEntityContainer && newElement is IEdmEntityContainer)
         {
@@ -65,8 +66,10 @@ internal class ChangesAnalyzer
         {
 
         }
-
-        ThrowUnsupportedElementTypes(originalElement, newElement);
+        else
+        {
+            ThrowUnsupportedElementTypes(originalElement, newElement);
+        }
     }
 
     protected void AnalyzeChanges(IEdmSchemaType originalElement, IEdmSchemaType newElement)
@@ -74,6 +77,10 @@ internal class ChangesAnalyzer
         if (originalElement is IEdmStructuredType oldType && newElement is IEdmStructuredType newType)
         {
             AnalyzeChanges(oldType, newType);
+        }
+        else if (originalElement is IEdmEnumType && newElement is IEdmEnumType)
+        {
+
         }
         else if (originalElement is IEdmTypeDefinition oldTypeDef && newElement is IEdmTypeDefinition newTypeDef)
         {
@@ -283,17 +290,22 @@ internal class ChangesAnalyzer
         if (candidate.SchemaElementKind == EdmSchemaElementKind.TypeDefinition)
         {
             // ensure it's the same type of type definition
-            if (element is IEdmEntityType && targetElement is not IEdmEntityType)
+            if (element is IEdmEntityType && candidate is not IEdmEntityType)
             {
                 return false;
             }
 
-            if (element is IEdmComplexType && targetElement is not IEdmComplexType)
+            if (element is IEdmComplexType && candidate is not IEdmComplexType)
             {
                 return false;
             }
 
-            if (element is IEdmTypeDefinition && targetElement is not IEdmTypeDefinition)
+            if (element is IEdmTypeDefinition && candidate is not IEdmTypeDefinition)
+            {
+                return false;
+            }
+
+            if (element is IEdmEnumType && candidate is not IEdmEnumType)
             {
                 return false;
             }
