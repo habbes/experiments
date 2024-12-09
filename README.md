@@ -10,3 +10,4 @@
 - [.NET's `JsonSerializer` large memory allocations when serializing large string and byte array values](./JsonSerializerLargeValuesMemoryAllocations/)
 - [Sample Data Structure Analysis](./SampleDataStructureAnalysis/)
 - [OData schema change analyzer](./ODataModelChangeAnalyzer/)
+- [OData Lightweight URI parser](./ODataSlimUrlParserConcept/)
