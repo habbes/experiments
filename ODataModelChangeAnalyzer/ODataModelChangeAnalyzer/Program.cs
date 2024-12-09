@@ -22,9 +22,17 @@ foreach (var change in changes)
     Console.WriteLine(change);
     Console.WriteLine($"At line: {location!.LineNumber} pos: {location!.LinePosition}");
     Console.WriteLine();
+
+    var error = change switch
+    {
+        StructuredTypeChangedFromOpenToClose c => $"Changing the type {c.NewType.FullTypeName()} from open to close is a breaking change. To fix this, add the attribute OpenType=\"True\".",
+        _ => throw new NotSupportedException()
+    };
 }
 
 Console.WriteLine($"\nFound {count} changes.");
+
+
 
 
 IEdmModel ReadModel(string path)
@@ -36,3 +44,5 @@ IEdmModel ReadModel(string path)
 }
 
 record ChangeWithLocation(object Change, CsdlLocation? Location);
+
+record ConditionalBreakingChange<T>(Func<T, bool> IsBreaking);

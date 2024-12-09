@@ -1,13 +1,13 @@
-﻿<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+﻿<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0" xmlns:ags="http://aggregator.microsoft.com/internal">
 	<script/>
 	<edmx:DataServices>
-		<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Microsoft.OData.SampleService.Models.TripPin">
+		<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Microsoft.OData.SampleService.Models.TripPin" xmlns:ags="http://aggregator.microsoft.com/internal">
 			<EnumType Name="PersonGender">
 				<Member Name="Male" Value="0"/>
 				<Member Name="Female" Value="1"/>
 				<Member Name="Unknown" Value="2"/>
 			</EnumType>
-			<ComplexType Name="City">
+			<ComplexType Name="City" ags:IsHidden="True">
 				<Property Name="CountryRegion" Type="Edm.String" Nullable="false"/>
 				<Property Name="Name" Type="Edm.String" Nullable="false"/>
 				<Property Name="Region" Type="Edm.String" Nullable="false"/>

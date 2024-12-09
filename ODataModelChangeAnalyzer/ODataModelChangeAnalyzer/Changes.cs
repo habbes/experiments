@@ -17,8 +17,9 @@ record SchemaElementRemoved(IEdmElement Target) : IModelChange
     public ChangeKind ChangeKind => ChangeKind.Deletion;
 }
 
-record StructuredTypeChangedFromOpenToClose(IEdmElement Target, IEdmElement Original) : IModelChange
+record StructuredTypeChangedFromOpenToClose(IEdmStructuredType NewType, IEdmStructuredType OriginalType) : IModelChange
 {
+    public IEdmElement Target => NewType;
     public ChangeKind ChangeKind => ChangeKind.Modification;
 }
 
