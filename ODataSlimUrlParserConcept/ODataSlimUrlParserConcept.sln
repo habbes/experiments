@@ -3,15 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35431.28
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{62631154-DDE9-488A-91E6-AC880614A52F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{62631154-DDE9-488A-91E6-AC880614A52F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Edm", "..\..\..\..\..\..\odata.net\src\Microsoft.OData.Edm\Microsoft.OData.Edm.csproj", "{BF4CC021-EE63-49D5-B6CF-97BF8BD8FBB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lib", "Lib\Lib.csproj", "{CC09F562-F2B6-4576-8486-C222D296772E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.OData.Core", "..\..\..\..\..\..\odata.net\src\Microsoft.OData.Core\Microsoft.OData.Core.csproj", "{D01FECDA-C419-4F41-8EB9-D411045EDBE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SlimParserTests", "SlimParserTests\SlimParserTests.csproj", "{643D98A3-CBDD-407E-86A9-CB590A78A7BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib", "Lib\Lib.csproj", "{CC09F562-F2B6-4576-8486-C222D296772E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimParserTests", "SlimParserTests\SlimParserTests.csproj", "{643D98A3-CBDD-407E-86A9-CB590A78A7BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{549B657E-17C9-4A29-B866-95FD89A5D7A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,14 +21,6 @@ Global
 		{62631154-DDE9-488A-91E6-AC880614A52F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62631154-DDE9-488A-91E6-AC880614A52F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62631154-DDE9-488A-91E6-AC880614A52F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF4CC021-EE63-49D5-B6CF-97BF8BD8FBB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF4CC021-EE63-49D5-B6CF-97BF8BD8FBB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF4CC021-EE63-49D5-B6CF-97BF8BD8FBB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF4CC021-EE63-49D5-B6CF-97BF8BD8FBB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D01FECDA-C419-4F41-8EB9-D411045EDBE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D01FECDA-C419-4F41-8EB9-D411045EDBE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D01FECDA-C419-4F41-8EB9-D411045EDBE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D01FECDA-C419-4F41-8EB9-D411045EDBE3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CC09F562-F2B6-4576-8486-C222D296772E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CC09F562-F2B6-4576-8486-C222D296772E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC09F562-F2B6-4576-8486-C222D296772E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +29,10 @@ Global
 		{643D98A3-CBDD-407E-86A9-CB590A78A7BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{643D98A3-CBDD-407E-86A9-CB590A78A7BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{643D98A3-CBDD-407E-86A9-CB590A78A7BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{549B657E-17C9-4A29-B866-95FD89A5D7A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{549B657E-17C9-4A29-B866-95FD89A5D7A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{549B657E-17C9-4A29-B866-95FD89A5D7A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{549B657E-17C9-4A29-B866-95FD89A5D7A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
