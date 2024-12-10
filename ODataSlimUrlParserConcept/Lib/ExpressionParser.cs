@@ -11,6 +11,17 @@ public class ExpressionParser
     readonly ReadOnlyMemory<char> _source;
     readonly List<ExpressionNode> _nodes = []; // TODO: consider lazy initialization
 
+    private static readonly Dictionary<string, int> OperatorPrecedence = new()
+    {
+        { "or", 1 },
+        { "and", 2 },
+        { "eq", 3 },
+        { "gt", 3 },
+        { "lt", 3 },
+        { "gte", 3 },
+        { "lte", 3 }
+    };
+
     private ExpressionParser(ReadOnlyMemory<char> source)
     {
         _source = source;
@@ -20,7 +31,8 @@ public class ExpressionParser
     {
         var lexer = new ExpressionLexer(_source.Span);
 
-        int root = ParseExpression(ref lexer);
+        //int root = ParseExpression(ref lexer);
+        int root = ParseExpressionWithPrecedence(ref lexer, 0);
         return new SlimQueryNode(this, root);
     }
 
@@ -52,6 +64,24 @@ public class ExpressionParser
                 // We don't expect consecutive terms without an operator
                 throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
             }
+        }
+
+        return left;
+    }
+
+    private int ParseExpressionWithPrecedence(ref ExpressionLexer lexer, int minPrecedence)
+    {
+        lexer.Read();
+        int left = ParseTerm(ref lexer);
+        var prec = OperatorPrecedence.GetAlternateLookup<ReadOnlySpan<char>>();
+
+        lexer.Read();
+        while (TryGetOperator(lexer.CurrentToken, out var op) &&
+                prec.TryGetValue(lexer.CurrentToken.Range.GetSpan(_source.Span), out int precedence) &&
+                precedence >= minPrecedence)
+        {
+            int right = ParseExpressionWithPrecedence(ref lexer, precedence + 1);
+            left = AddNode(new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
         }
 
         return left;

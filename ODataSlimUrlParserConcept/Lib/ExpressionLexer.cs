@@ -1,5 +1,8 @@
-﻿namespace Lib;
+﻿using System.Diagnostics;
 
+namespace Lib;
+
+[DebuggerDisplay("ExpressionLexer ({_token.Kind} @ {_pos} [{_token.Range.GetSpan(_source)}])")]
 public ref struct ExpressionLexer
 {
     ReadOnlySpan<char> _source;

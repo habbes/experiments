@@ -20,7 +20,7 @@ public class ExpressionParserTests
         Assert.Equal(ExpressionNodeKind.Gt, node.GetRight().Kind);
         Assert.Equal("category", node.GetLeft().GetLeft().GetIdentifier());
         Assert.Equal("electronics", node.GetLeft().GetRight().GetString());
-        Assert.Equal("price", node.GetLeft().GetLeft().GetIdentifier());
+        Assert.Equal("price", node.GetRight().GetLeft().GetIdentifier());
         Assert.Equal(100, node.GetRight().GetRight().GetInt());
     }
 
