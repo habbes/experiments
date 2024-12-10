@@ -69,4 +69,19 @@ public struct SlimQueryNode
         }
         return GetRawValueSpan().ToString();
     }
+
+    public T Accept<T>(ISyntacticExpressionHandler<T> visitor)
+    {
+        return this.Kind switch
+        {
+            ExpressionNodeKind.Identifier => visitor.HandleIdentifier(this),
+            ExpressionNodeKind.IntConstant => visitor.HandleIntConstant(this),
+            ExpressionNodeKind.StringContant => visitor.HandleStringConstant(this),
+            ExpressionNodeKind.Eq => visitor.HandleEq(this),
+            ExpressionNodeKind.Gt => visitor.HandleGt(this),
+            ExpressionNodeKind.And => visitor.HandleAnd(this),
+            ExpressionNodeKind.Or => visitor.HandleOr(this),
+            _ => throw new InvalidOperationException($"Unknown node kind {this.Kind}")
+        };
+    }
 }

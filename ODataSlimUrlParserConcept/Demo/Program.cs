@@ -1,11 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Lib;
+using Lib.SampleVisitors;
 using Microsoft.OData.Edm.Csdl;
 using Microsoft.OData.UriParser;
 using Microsoft.OData.UriParser.Aggregation;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
+using static Lib.ExpressionLexer;
 
 Console.WriteLine("Hello, World!");
 
@@ -41,63 +43,60 @@ var filterExpression = "category eq 'electronics' or price gt 100";
 
 var uri = new Uri("http://service/products(1)?filter=category in ('stationery', 'electronics')");
 
-var parser = new ODataUriParser(model, new Uri(relativeUri, UriKind.Relative));
-var queryParser = new ODataQueryOptionParser(
-    model,
-    model.FindDeclaredType("test.ns.product"),
-    model.EntityContainer.FindEntitySet("products"),
-    new Dictionary<string, string> { { "$filter", filterExpression } });
+//var parser = new ODataUriParser(model, new Uri(relativeUri, UriKind.Relative));
+//var queryParser = new ODataQueryOptionParser(
+//    model,
+//    model.FindDeclaredType("test.ns.product"),
+//    model.EntityContainer.FindEntitySet("products"),
+//    new Dictionary<string, string> { { "$filter", filterExpression } });
 
 
 
-//var odataUri = parser.ParseUri();
-var filter = queryParser.ParseFilter();
-Console.ReadLine();
+////var odataUri = parser.ParseUri();
+//var filter = queryParser.ParseFilter();
+//Console.ReadLine();
 
 UriQueryExpressionParser queryExpressionParser = new(100);
-QueryToken expression = queryExpressionParser.ParseFilter(filterExpression);
+QueryToken filterToken = queryExpressionParser.ParseFilter(filterExpression);
 
-Console.ReadLine();
-Console.WriteLine(expression.Kind);
-var lexer = new ExpressionLexer(filterExpression);
-while (lexer.Read())
-{
-    Console.WriteLine($"{lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(filterExpression)}");
-}
-
-Console.ReadLine();
+//Console.ReadLine();
+////Console.WriteLine(filterToken.Kind);
+//Console.ReadLine();
 
 SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+//Console.ReadLine();
+
+var odataTranslator = new ODataQueryRewriter();
+filterToken.Accept(odataTranslator);
+Console.WriteLine($"Query generated with OData translater: {odataTranslator.GetQuery()}");
 Console.ReadLine();
 
-var jsonText = """
-    { "name": "Habbes", "age": 19, "hobbies": ["programming", "music"]
-    """;
-
-ReadOnlySpan<byte> jsonData = Encoding.UTF8.GetBytes(jsonText);
-
-var jsonReader = new Utf8JsonReader(jsonData);
-jsonReader.Read();
-
+var slimRewriter = new SlimQueryRewriter();
+slimQuery.Accept(slimRewriter);
+Console.WriteLine($"Query generated with OData translater: {slimRewriter.GetQuery()}");
 Console.ReadLine();
 
-void CollectMemory()
-{
-    GC.Collect();
-    GC.WaitForPendingFinalizers();
-    GC.Collect();
-}
+
+
+
+
+//void CollectMemory()
+//{
+//    GC.Collect();
+//    GC.WaitForPendingFinalizers();
+//    GC.Collect();
+//}
 // filter
-// expression => identifier, listExpression
+// filterToken => identifier, listExpression
 // term => identifier | constant
 // constant => stringConstant, intConstant
-// expression => expression op expression
+// filterToken => filterToken op filterToken
 // listExpression => (identifier|literal)
 
 // filterLexer => Read(),
 // SlimFilterParser
-// expression.Kind = "binaryop"
+// filterToken.Kind = "binaryop"
 //  GetLeftOperand(), GetRightOperand()
-// expression.Kind == list
+// filterToken.Kind == list
 //   EnumerateList()
 // state: inList, depth, etc.

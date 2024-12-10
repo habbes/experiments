@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Lib;
+using Lib.SampleVisitors;
 using Microsoft.OData.Edm;
 using Microsoft.OData.Edm.Csdl;
 using Microsoft.OData.UriParser;
@@ -75,12 +76,39 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    public SlimQueryNode ParseExpression_SlimQueryParser()
+    {
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+        return slimQuery;
+    }
+
+    [Benchmark]
     public ExpressionLexer ParseExpression_SlimExpressionLexer()
     {
         var lexer = new ExpressionLexer(filterExpression);
         while (lexer.Read()) { };
         return lexer;
     }
+
+    [Benchmark]
+    public string QueryRoundTrip_UriQueryExpressionParser()
+    {
+        var rewriter = new ODataQueryRewriter();
+        UriQueryExpressionParser parser = new(100);
+        QueryToken expression = parser.ParseFilter(filterExpression);
+        expression.Accept(rewriter);
+        return rewriter.GetQuery();
+    }
+
+    [Benchmark]
+    public string QueryRoundTrip_SlimQueryParser()
+    {
+        var rewriter = new SlimQueryRewriter();
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+        slimQuery.Accept(rewriter);
+        return rewriter.GetQuery();
+    }
+
 
 
     private static IEdmModel GetModel()

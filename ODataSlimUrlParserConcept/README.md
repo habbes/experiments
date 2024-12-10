@@ -64,7 +64,19 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
 
 ## Checkpoint 2: Lightweight syntactic parser
 
-TODO
+This is a temporary result, based on a syntactic parser that does not honor operator precedence. Just keeping here for reference
+to see how the perf changes after I implement proper operator precedence support.
+
+| Method                                   | Mean         | Error      | StdDev     | Gen0   | Allocated |
+|----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
+| ParseExpression_ODataQueryOptionParser   | 22,792.42 ns | 452.168 ns | 502.583 ns | 1.3733 |    6024 B |
+| ParseExpression_UriQueryExpressionParser |  1,689.61 ns |  21.732 ns |  19.265 ns | 0.2918 |    1264 B |
+| ParseExpression_SlimQueryParser          |    195.45 ns |   2.091 ns |   2.053 ns | 0.0834 |     360 B |
+| ParseExpression_SlimExpressionLexer      |     81.59 ns |   1.269 ns |   1.125 ns |      - |         - |
+| QueryRoundTrip_UriQueryExpressionParser  |  1,986.13 ns |  39.501 ns |  40.565 ns | 0.4044 |    1752 B |
+| QueryRoundTrip_SlimQueryParser           |    443.36 ns |   8.420 ns |   8.269 ns | 0.1965 |     848 B |
+
+TODO:
 
 ## Checkpoint 3 : Lightweight semantic parser
 
