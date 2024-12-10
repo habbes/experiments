@@ -101,14 +101,14 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
   DefaultJob : .NET 9.0.0 (9.0.24.52809), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
 ```
 
-| Method                                   | Mean         | Error      | StdDev     | Gen0   | Allocated |
-|----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
-| ParseExpression_ODataQueryOptionParser   | 25,495.20 ns | 506.087 ns | 912.579 ns | 1.3428 |    6024 B |
-| ParseExpression_UriQueryExpressionParser |  1,754.51 ns |  23.425 ns |  19.561 ns | 0.2918 |    1264 B |
-| ParseExpression_SlimQueryParser          |    284.55 ns |   5.604 ns |   7.670 ns | 0.0834 |     360 B |
-| ParseExpression_SlimExpressionLexer      |     80.92 ns |   1.365 ns |   1.277 ns |      - |         - |
-| QueryRoundTrip_UriQueryExpressionParser  |  2,122.77 ns |  42.240 ns | 118.445 ns | 0.4044 |    1752 B |
-| QueryRoundTrip_SlimQueryParser           |    607.31 ns |  12.082 ns |  31.828 ns | 0.1965 |     848 B |
+| Method                                   | Mean         | Error      | StdDev       | Gen0   | Allocated |
+|----------------------------------------- |-------------:|-----------:|-------------:|-------:|----------:|
+| ParseExpression_ODataQueryOptionParser   | 23,070.22 ns | 493.339 ns | 1,423.396 ns | 1.3733 |    6024 B |
+| ParseExpression_UriQueryExpressionParser |  1,686.49 ns |  33.224 ns |    39.550 ns | 0.2918 |    1264 B |
+| ParseExpression_SlimQueryParser          |    188.74 ns |   3.598 ns |     3.190 ns | 0.0908 |     392 B |
+| ParseExpression_SlimExpressionLexer      |     80.84 ns |   1.522 ns |     2.932 ns |      - |         - |
+| QueryRoundTrip_UriQueryExpressionParser  |  1,835.62 ns |  12.187 ns |    10.804 ns | 0.4044 |    1752 B |
+| QueryRoundTrip_SlimQueryParser           |    457.58 ns |   9.011 ns |    11.397 ns | 0.2036 |     880 B |
 
 The results show that the lightweight parser is still much more performant. But I don't like the increase
 in runtime and memory usage from the `SlimExpressionLexer` to the `SlimQueryParser` and its round-trip results.
