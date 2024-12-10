@@ -20,7 +20,7 @@ public class ExpressionParser
     {
         var lexer = new ExpressionLexer(_source.Span);
 
-        int root = ParseExpression(lexer);
+        int root = ParseExpression(ref lexer);
         return new SlimQueryNode(this, root);
     }
 
@@ -35,45 +35,45 @@ public class ExpressionParser
 
     internal ReadOnlyMemory<char> GetValueMemory(int index) => _nodes[index].Range.GetMemory(_source);
 
-    private int ParseExpression(ExpressionLexer lexer)
+    private int ParseExpression(ref ExpressionLexer lexer)
     {
         lexer.Read();
-        int left = ParseTerm(lexer);
+        int left = ParseTerm(ref lexer);
         while (lexer.Read())
         {
             if (TryGetOperator(lexer.CurrentToken, out var op))
             {
-                lexer.Read();
-                int right = ParseExpression(lexer);
-                left = AddNode(new ExpressionNode(op, new ValueRange(), left, right));
+                //lexer.Read();
+                int right = ParseExpression(ref lexer);
+                left = AddNode(new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
             }
             else
             {
                 // We don't expect consecutive terms without an operator
-                throw new Exception($"Unexpected token {lexer.CurrentToken.Range}");
+                throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
             }
         }
 
         return left;
     }
 
-    private int ParseTerm(ExpressionLexer lexer)
+    private int ParseTerm(ref ExpressionLexer lexer)
     {
         if (lexer.CurrentToken.Kind == ExpressionTokenKind.Identifier)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.Identifier, new ValueRange(), 0, 0));
+            return AddNode(new ExpressionNode(ExpressionNodeKind.Identifier, lexer.CurrentToken.Range, 0, 0));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.IntLiteral)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.IntConstant, new ValueRange(), 0, 0));
+            return AddNode(new ExpressionNode(ExpressionNodeKind.IntConstant, lexer.CurrentToken.Range, 0, 0));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.StringLiteral)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.StringContant, new ValueRange(), 0, 0));
+            return AddNode(new ExpressionNode(ExpressionNodeKind.StringContant, lexer.CurrentToken.Range, 0, 0));
         }
         else
         {
-            throw new Exception("Unexpected token");
+            throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
         }
 
     }
@@ -93,22 +93,22 @@ public class ExpressionParser
         }
 
         ReadOnlySpan<char> tokenValue = token.Range.GetSpan(_source.Span);
-        if (tokenValue == "eq")
+        if (tokenValue.Equals("eq", StringComparison.Ordinal))
         {
             op = ExpressionNodeKind.Eq;
             return true;
         }
-        else if (tokenValue == "gt")
+        else if (tokenValue.Equals("gt", StringComparison.Ordinal))
         {
             op = ExpressionNodeKind.Gt;
             return true;
         }
-        else if (tokenValue == "and")
+        else if (tokenValue.Equals("and", StringComparison.Ordinal))
         {
             op = ExpressionNodeKind.And;
             return true;
         }
-        else if (tokenValue == "or")
+        else if (tokenValue.Equals("or", StringComparison.Ordinal))
         {
             op = ExpressionNodeKind.Or;
             return true;

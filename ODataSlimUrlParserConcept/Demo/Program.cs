@@ -67,6 +67,9 @@ while (lexer.Read())
 
 Console.ReadLine();
 
+SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+Console.ReadLine();
+
 var jsonText = """
     { "name": "Habbes", "age": 19, "hobbies": ["programming", "music"]
     """;
