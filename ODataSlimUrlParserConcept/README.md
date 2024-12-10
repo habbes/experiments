@@ -61,7 +61,7 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
 |----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
 | ParseExpression_ODataQueryOptionParser   | 23,349.92 ns | 454.424 ns | 622.021 ns | 1.4343 |    6256 B |
 | ParseExpression_UriQueryExpressionParser |  2,045.97 ns |  41.704 ns | 120.325 ns | 0.2899 |    1264 B |
-| ParseExpression_SlimExpressionLexer      |     90.21 ns |   1.688 ns |   1.579 ns |      - |         - |
+| **ParseExpression_SlimExpressionLexer**      |     90.21 ns |   1.688 ns |   1.579 ns |      - |         - |
 
 - `ODataQueryOptionParser` is a semantic parser. This requires the model and binds IEdmModel type information and semantic context to the expression tree.
 - `UriQueryExpressionParser` is a syntactic parser. It parses the expression without requiring the model.
@@ -109,10 +109,10 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
 |----------------------------------------- |-------------:|-----------:|-------------:|-------:|----------:|
 | ParseExpression_ODataQueryOptionParser   | 23,070.22 ns | 493.339 ns | 1,423.396 ns | 1.3733 |    6024 B |
 | ParseExpression_UriQueryExpressionParser |  1,686.49 ns |  33.224 ns |    39.550 ns | 0.2918 |    1264 B |
-| ParseExpression_SlimQueryParser          |    188.74 ns |   3.598 ns |     3.190 ns | 0.0908 |     392 B |
+| **ParseExpression_SlimQueryParser**          |    188.74 ns |   3.598 ns |     3.190 ns | 0.0908 |     392 B |
 | ParseExpression_SlimExpressionLexer      |     80.84 ns |   1.522 ns |     2.932 ns |      - |         - |
 | QueryRoundTrip_UriQueryExpressionParser  |  1,835.62 ns |  12.187 ns |    10.804 ns | 0.4044 |    1752 B |
-| QueryRoundTrip_SlimQueryParser           |    457.58 ns |   9.011 ns |    11.397 ns | 0.2036 |     880 B |
+| **QueryRoundTrip_SlimQueryParser**           |    457.58 ns |   9.011 ns |    11.397 ns | 0.2036 |     880 B |
 
 The results show that the lightweight parser is still much more performant. But I don't like the increase
 in runtime and memory usage from the `SlimExpressionLexer` to the `SlimQueryParser` and its round-trip results.
@@ -143,7 +143,7 @@ that the property exists on the target type).
 |----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
 | ParseExpression_ODataQueryOptionParser   | 21,583.65 ns | 411.359 ns | 440.150 ns | 1.3733 |    6024 B |
 | ParseExpression_UriQueryExpressionParser |  1,685.28 ns |  27.102 ns |  25.351 ns | 0.2918 |    1264 B |
-| ParseExpression_SlimSemanticBinder       |    578.86 ns |  10.906 ns |  10.711 ns | 0.2241 |     968 B |
+| **ParseExpression_SlimSemanticBinder**       |    578.86 ns |  10.906 ns |  10.711 ns | 0.2241 |     968 B |
 | ParseExpression_SlimQueryParser          |    197.15 ns |   3.853 ns |   4.123 ns | 0.0908 |     392 B |
 | ParseExpression_SlimExpressionLexer      |     82.37 ns |   1.504 ns |   1.334 ns |      - |         - |
 | QueryRoundTrip_UriQueryExpressionParser  |  1,969.33 ns |  38.551 ns |  54.043 ns | 0.4044 |    1752 B |
