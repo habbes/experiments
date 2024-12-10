@@ -65,6 +65,8 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
 
 ## Checkpoint 2: Lightweight syntactic parser
 
+[**View checkpoint's commit: `d3e2d81`**](https://github.com/habbes/experiments/pull/3/commits/d3e2d81ba26add99026c0c0495901ece564f3dd0)
+
 This checkpoint implements a light-weight syntactic parser that generates an expression tree from query expression string.
 To minimize memory use, the tree nodes are stored in `List<T>` instead of a recursive tree structures. Nodes use indices
 in the list to find their children.
