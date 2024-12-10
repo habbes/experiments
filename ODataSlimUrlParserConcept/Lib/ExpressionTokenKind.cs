@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Lib;
+﻿namespace Lib;
 
 public enum ExpressionTokenKind
 {
+    None,
+    // For simplicity, we use the identifier token for operators and keywords
+    // as well, and disambiguate them in the parser.
     Identifier,
-    Keyword,
     StringLiteral,
     IntLiteral,
-    None
 }

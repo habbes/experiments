@@ -62,7 +62,7 @@ Console.WriteLine(expression.Kind);
 var lexer = new ExpressionLexer(filterExpression);
 while (lexer.Read())
 {
-    // Console.WriteLine($"{lexer.CurrentToken.Kind} {lexer.CurrentToken.Value}");
+    Console.WriteLine($"{lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(filterExpression)}");
 }
 
 Console.ReadLine();

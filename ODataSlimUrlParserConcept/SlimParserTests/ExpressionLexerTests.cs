@@ -12,31 +12,31 @@ public class ExpressionLexerTests
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
-        Assert.Equal("category", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("category", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
-        Assert.Equal("eq", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("eq", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.StringLiteral, lexer.CurrentToken.Kind);
-        Assert.Equal("electronics", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("electronics", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
-        Assert.Equal("or", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("or", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
-        Assert.Equal("price", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("price", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
-        Assert.Equal("gt", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("gt", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
-        Assert.Equal("100", lexer.CurrentToken.Value.ToString());
+        Assert.Equal("100", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.False(lexer.Read());
     }
