@@ -3,6 +3,12 @@
 This PoC focuses on query options, and especially expression parsing since that's more complex that parsing path segments or even a select clause. If we can get something that works
 for expressions, than we can extend it to support other types of clauses.
 
+This implementation assume that we have the full source string in memory, and that it's acceptable to keep the source in memory for the duration of the parsing and processing of
+the parsed nodes. (TODO, we'll need to keep the original source string after the semantic parse?)
+
+`ODataQueryOptionsParser` also keeps the source string in memory via the `Uri` input it takes. However, we can discard of the parser after we have the semantic expression tree, and
+therefore we no longer need to keep the original source string in memory. But the cost is that we had to allocate many substrings for the individual values
+
 ## Code organization
 
 - [`Lib`](./Lib): The project implementing the lightweight OData URI parser.
@@ -11,6 +17,8 @@ for expressions, than we can extend it to support other types of clauses.
 - [`Benchmarks`](./Benchmarks): Benchmarks to measure and compare the performance as I go.
 
 ## Checkpoint 1: Allocation free lexer
+
+[**View checkpoint's commit: `b5d4a56`**](https://github.com/habbes/experiments/pull/3/commits/b5d4a567182e688355a695a8b56080a2679a01ee)
 
 The first checkpoint is an allocation-free tokenizer/lexer. It's implemented as ref struct and takes a `ReadOnlySpan<char>` as input.
 
@@ -34,6 +42,8 @@ while (lexer.Read())
 
 Before I continue to build the syntactic parser, let me compare performance with existing implementation to see how much headroom I have:
 
+The benchmarks compare parsing the following filter expression: `"category eq 'electronics' or price gt 100"`.
+
 ```md
 BenchmarkDotNet v0.14.0, Windows 11 (10.0.26100.2314)
 Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
@@ -41,8 +51,6 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
   [Host]     : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
   DefaultJob : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
 ```
-
-The benchmarks compare parsing the following filter expression: "category eq 'electronics' or price gt 100".
 
 | Method                                   | Mean         | Error      | StdDev     | Gen0   | Allocated |
 |----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
