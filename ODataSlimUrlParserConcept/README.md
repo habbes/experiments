@@ -65,10 +65,10 @@ Intel Xeon W-2123 CPU 3.60GHz, 1 CPU, 8 logical and 4 physical cores
 
 ## Checkpoint 2: Lightweight syntactic parser
 
-[**View checkpoint's commit: `d3e2d81`**](https://github.com/habbes/experiments/pull/3/commits/d3e2d81ba26add99026c0c0495901ece564f3dd0)
+[**View checkpoint's commit: `86761cf`**](https://github.com/habbes/experiments/pull/3/commits/86761cf0dd4cd08d857efbd80211bf229d869eb0)
 
 This checkpoint implements a light-weight syntactic parser that generates an expression tree from query expression string.
-To minimize memory use, the tree nodes are stored in `List<T>` instead of a recursive tree structures. Nodes use indices
+To minimize memory use, the tree nodes are stored in an array (wrapped inside a custom `NodeList` struct) instead of a recursive tree structures. Nodes use indices
 in the list to find their children.
 
 `ExpressionParser.Parse(source)` returns a `SlimQueryNode` which provides APIs for traversing the query DOM. The `SlimQueryNode`
