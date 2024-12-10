@@ -116,8 +116,10 @@ in runtime and memory usage from the `SlimExpressionLexer` to the `SlimQueryPars
 I want to spend sometime to optimize the `SlimQueryParser` to reduce the overhead compared to the lexer so that
 we have enough headroom when we add semantic binding and also when implement the full feature set.
 
-- Use array-pooled collection instead of `List<ExpressionNode>`
 - Consider using `byte[]` array instead of `ExpressionNode[]` array marshal data in and out of the array to see whether this reduces overhead
+  - Use different structs for different kinds of nodes. E.g. unary nodes don't need a left and right node, we can skip those fields and save 8 bytes per unary node.
+- Consider embedding the node class (e.g. binary operator, unary, etc.) in the enum values.
+  - E.g. the least-significant word could be the operand "index" and the ms-word could have bit flags that represent whether or not the operator is a binary operator.
 
 The `SlimQueryParser` implementation uses a simple precedence climbing technique to ensure the expression tree follows correct operator precedence.
 Each operator is given a precedence value, which is used to decide to how to connect operator experessions. This works differently from OData's

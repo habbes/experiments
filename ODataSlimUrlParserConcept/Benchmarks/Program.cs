@@ -2,4 +2,4 @@
 using BenchmarkDotNet.Running;
 using Benchmarks;
 
-BenchmarkRunner.Run<ParserBenchmarks>();
+BenchmarkSwitcher.FromAssembly(typeof(ParserBenchmarks).Assembly).Run(args);

@@ -62,9 +62,10 @@ QueryToken filterToken = queryExpressionParser.ParseFilter(filterExpression);
 //Console.ReadLine();
 ////Console.WriteLine(filterToken.Kind);
 //Console.ReadLine();
-
+CollectMemory();
 SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
 //Console.ReadLine();
+//CollectMemory();
 
 var odataTranslator = new ODataQueryRewriter();
 filterToken.Accept(odataTranslator);
@@ -80,12 +81,12 @@ Console.ReadLine();
 
 
 
-//void CollectMemory()
-//{
-//    GC.Collect();
-//    GC.WaitForPendingFinalizers();
-//    GC.Collect();
-//}
+void CollectMemory()
+{
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+}
 // filter
 // filterToken => identifier, listExpression
 // term => identifier | constant

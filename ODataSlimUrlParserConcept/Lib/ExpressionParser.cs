@@ -1,44 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Lib;
 
-namespace Lib;
-
-public class ExpressionParser
+public partial class ExpressionParser : IDisposable
 {
     readonly ReadOnlyMemory<char> _source;
-    readonly List<ExpressionNode> _nodes = []; // TODO: consider lazy initialization
+    NodeList _nodes;
 
-    private static readonly Dictionary<string, int> OperatorPrecedence = new()
+    private static readonly int[] OperatorPrecedence = CreateOperatorPrecedenceMap();
+
+    private static int[] CreateOperatorPrecedenceMap()
     {
-        { "or", 1 },
-        { "and", 2 },
-        { "eq", 3 },
-        { "gt", 3 },
-        { "lt", 3 },
-        { "gte", 3 },
-        { "lte", 3 }
-    };
+        
+        int[] map = new int[Enum.GetValues<ExpressionNodeKind>().Length];
+
+        map[(int)ExpressionNodeKind.Or] = 1;
+        map[(int)ExpressionNodeKind.And] = 2;
+        map[(int)ExpressionNodeKind.Eq] = 3;
+        map[(int)ExpressionNodeKind.Gt] = 3;
+
+        return map;
+    }
 
     private ExpressionParser(ReadOnlyMemory<char> source)
     {
         _source = source;
     }
 
-    private SlimQueryNode Parse()
-    {
-        var lexer = new ExpressionLexer(_source.Span);
-
-        //int root = ParseExpression(ref lexer);
-        int root = ParseExpressionWithPrecedence(ref lexer, 0);
-        return new SlimQueryNode(this, root);
-    }
-
     public static SlimQueryNode Parse(ReadOnlyMemory<char> source)
     {
-        return new ExpressionParser(source).Parse();
+        var nodes = new NodeList(4);
+        var parser = new ExpressionParser(source);
+        var root = parser.Parse(ref nodes);
+        parser._nodes = nodes;
+
+        return root;
+    }
+
+    private SlimQueryNode Parse(ref NodeList nodes)
+    {
+        var lexer = new ExpressionLexer(_source.Span);
+        
+        //int root = ParseExpression(ref lexer);
+        int root = ParseExpressionWithPrecedence(ref lexer, ref nodes, 0);
+        return new SlimQueryNode(this, root);
     }
 
     internal ExpressionNode this[int index] => _nodes[index];
@@ -47,17 +50,18 @@ public class ExpressionParser
 
     internal ReadOnlyMemory<char> GetValueMemory(int index) => _nodes[index].Range.GetMemory(_source);
 
-    private int ParseExpression(ref ExpressionLexer lexer)
+    // This version does not take precedence into account
+    private int ParseExpression(ref ExpressionLexer lexer, ref NodeList nodes)
     {
         lexer.Read();
-        int left = ParseTerm(ref lexer);
+        int left = ParseTerm(ref lexer, ref nodes);
         while (lexer.Read())
         {
             if (TryGetOperator(lexer.CurrentToken, out var op))
             {
                 //lexer.Read();
-                int right = ParseExpression(ref lexer);
-                left = AddNode(new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
+                int right = ParseExpression(ref lexer, ref nodes);
+                left = AddNode(ref nodes, new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
             }
             else
             {
@@ -69,37 +73,36 @@ public class ExpressionParser
         return left;
     }
 
-    private int ParseExpressionWithPrecedence(ref ExpressionLexer lexer, int minPrecedence)
+    private int ParseExpressionWithPrecedence(ref ExpressionLexer lexer, ref NodeList nodes, int minPrecedence)
     {
         lexer.Read();
-        int left = ParseTerm(ref lexer);
-        var prec = OperatorPrecedence.GetAlternateLookup<ReadOnlySpan<char>>();
+        int left = ParseTerm(ref lexer, ref nodes);
 
         lexer.Read();
         while (TryGetOperator(lexer.CurrentToken, out var op) &&
-                prec.TryGetValue(lexer.CurrentToken.Range.GetSpan(_source.Span), out int precedence) &&
+                TryGetOperatorPrecedence(op, out var precedence) &&
                 precedence >= minPrecedence)
         {
-            int right = ParseExpressionWithPrecedence(ref lexer, precedence + 1);
-            left = AddNode(new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
+            int right = ParseExpressionWithPrecedence(ref lexer, ref nodes, precedence + 1);
+            left = AddNode(ref nodes, new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
         }
 
         return left;
     }
 
-    private int ParseTerm(ref ExpressionLexer lexer)
+    private int ParseTerm(ref ExpressionLexer lexer, ref NodeList nodes)
     {
         if (lexer.CurrentToken.Kind == ExpressionTokenKind.Identifier)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.Identifier, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.Identifier, lexer.CurrentToken.Range, 0, 0));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.IntLiteral)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.IntConstant, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.IntConstant, lexer.CurrentToken.Range, 0, 0));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.StringLiteral)
         {
-            return AddNode(new ExpressionNode(ExpressionNodeKind.StringContant, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes,new ExpressionNode(ExpressionNodeKind.StringContant, lexer.CurrentToken.Range, 0, 0));
         }
         else
         {
@@ -108,10 +111,10 @@ public class ExpressionParser
 
     }
 
-    private int AddNode(ExpressionNode node)
+    private static int AddNode(ref NodeList nodes, ExpressionNode node)
     {
-        _nodes.Add(node);
-        return _nodes.Count - 1;
+        nodes.Add(node);
+        return nodes.Count - 1;
     }
 
     private bool TryGetOperator(ExpressionLexer.Token token, out ExpressionNodeKind op)
@@ -147,6 +150,17 @@ public class ExpressionParser
         {
             return false;
         }
+    }
+
+    private static bool TryGetOperatorPrecedence(ExpressionNodeKind op, out int precedence)
+    {
+        precedence = OperatorPrecedence[(int)op];
+        return precedence > 0;
+    }
+
+    public void Dispose()
+    {
+        _nodes.Dispose();
     }
 
     internal record struct ExpressionNode(ExpressionNodeKind Kind, ValueRange Range, int Left, int Right);
