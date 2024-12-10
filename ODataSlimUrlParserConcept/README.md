@@ -131,6 +131,8 @@ recursive descent approach. I would like to compare the two techniques at some p
 
 ## Checkpoint 3 : Lightweight semantic parser
 
+[**View checkpoint's commit: `d878b37`**](https://github.com/habbes/experiments/pull/3/commits/d878b3731e9cfa8a5581d99d400db86b09444fdd)
+
 (with IEdmModel-based semantic context and validation)
 
 This is a temporary checkpoint that demonstrates semantic binding. The `SemanticBinder` traverses the `SlimQueryNode` tree from the previous checkpoint (using the handler)
