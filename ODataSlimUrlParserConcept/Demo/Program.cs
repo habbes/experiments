@@ -77,7 +77,9 @@ slimQuery.Accept(slimRewriter);
 Console.WriteLine($"Query generated with OData translater: {slimRewriter.GetQuery()}");
 Console.ReadLine();
 
+var semanticTree = SemanticBinder.Bind(slimQuery, model, model.FindDeclaredType("test.ns.product"));
 
+Console.ReadLine();
 
 
 

@@ -8,7 +8,11 @@ This implementation assume that we have the full source string in memory, and th
 the parsed nodes. (TODO, we'll need to keep the original source string after the semantic parse?)
 
 `ODataQueryOptionsParser` also keeps the source string in memory via the `Uri` input it takes. However, we can discard of the parser after we have the semantic expression tree, and
-therefore we no longer need to keep the original source string in memory. But the cost is that we had to allocate many substrings for the individual values
+therefore we no longer need to keep the original source string in memory. But the cost is that we had to allocate many substrings for the individual values.
+
+The results in this doc are not conclusive. This PoC implements a very small subset of the required OData query parsing and validation capabilities. Consequently, we expect less
+overhead. The idea however is to demonstrate such a significant gap between the PoC and existing implementation (e.g. 10x difference) to gain confidence that should we
+implement a fully-featured version of the parser using the same architecture and techniques proposed here, that we would get something at least 3x better than the existing implementation.
 
 ## Code organization
 
@@ -129,7 +133,24 @@ recursive descent approach. I would like to compare the two techniques at some p
 
 (with IEdmModel-based semantic context and validation)
 
-TODO:
+This is a temporary checkpoint that demonstrates semantic binding. The `SemanticBinder` traverses the `SlimQueryNode` tree from the previous checkpoint (using the handler)
+and creates a new `SemanticNode` that binds the syntactic node with semantic context (e.g. an identifier node is transformed into a property access node after verifying
+that the property exists on the target type).
+
+| Method                                   | Mean         | Error      | StdDev     | Gen0   | Allocated |
+|----------------------------------------- |-------------:|-----------:|-----------:|-------:|----------:|
+| ParseExpression_ODataQueryOptionParser   | 21,583.65 ns | 411.359 ns | 440.150 ns | 1.3733 |    6024 B |
+| ParseExpression_UriQueryExpressionParser |  1,685.28 ns |  27.102 ns |  25.351 ns | 0.2918 |    1264 B |
+| ParseExpression_SlimSemanticBinder       |    578.86 ns |  10.906 ns |  10.711 ns | 0.2241 |     968 B |
+| ParseExpression_SlimQueryParser          |    197.15 ns |   3.853 ns |   4.123 ns | 0.0908 |     392 B |
+| ParseExpression_SlimExpressionLexer      |     82.37 ns |   1.504 ns |   1.334 ns |      - |         - |
+| QueryRoundTrip_UriQueryExpressionParser  |  1,969.33 ns |  38.551 ns |  54.043 ns | 0.4044 |    1752 B |
+| QueryRoundTrip_SlimQueryParser           |    470.51 ns |   9.110 ns |  12.470 ns | 0.2036 |     880 B |
+
+I want to introduce a "lighter weight" semantic binder between the syntactic parser and this binder, one that does not allocate expression tree nodes, but indexes into syntatic nodes
+and binds semantic context on demand (lazily). This could be ideal for a lightweight single-pass traversal of the tree. The semantic context could be cached if multiple passes are expected,
+or if we expect multiple passes, we create an expression tree with all the nodes materialized, like what we have here.
+
 
 ## Checkpoint 4 : Support complex-nested expressions
 

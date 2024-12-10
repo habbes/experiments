@@ -76,6 +76,13 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    public SemanticNode ParseExpression_SlimSemanticBinder()
+    {
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+        return SemanticBinder.Bind(slimQuery, model, edmType);
+    }
+
+    [Benchmark]
     public SlimQueryNode ParseExpression_SlimQueryParser()
     {
         SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
