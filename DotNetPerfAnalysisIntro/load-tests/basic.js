@@ -18,7 +18,7 @@ function generateValue(size) {
   return s;
 }
 
-const data = generateValue(10);
+const data = generateValue(10000);
 
 export default function () {
   
@@ -28,10 +28,10 @@ export default function () {
     }
   });
 
-  sleep(1);
+  // sleep(1);
 
-  http.get(`${BASE_URL}/readings/${places[Math.floor(Math.random() * places.length)]}`);
+  http.get(`${BASE_URL}/readings/Nairobi`);
 
-  sleep(1);
+  // sleep(1);
 }
 
