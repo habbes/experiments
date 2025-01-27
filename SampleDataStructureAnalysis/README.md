@@ -178,8 +178,8 @@ Exception of type 'System.OutOfMemoryException' was thrown.
 
 Here are the results, showing how many entries it was able to add to the collection with 512MB linit:
 
-| Data Structure | Memory limit | Total Entries | Time till crash
-|-----------------|--------------|---------------|
+| Data Structure | Total Entries | Time till crash |
+|----------------|---------------|---------------|
 |Dynamic array | 33,444,432 | 982ms|
 |Linked list | 8,267,118  | 4,629ms|
 |Sorted tree | 7,087,458 | 7,911ms|

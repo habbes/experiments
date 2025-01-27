@@ -2,9 +2,13 @@
 
 This is an intro to working with [Single-Instruction-Multiple-Data](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data) capabilities in .NET.
 
-[Presentation slides](./Intro-to-SIMD-in-dotNET.pdf).
+In this folder: 
+- [Presentation slide deck](./Intro_to_SIMD_in_dotNET.pdf)
+- [Demo source code](./DotNetSIMD)
+  - [Benchmarks](./DotNetSIMD/DotNetSIMD)
+  - [Unit tests](./DotNetSIMD/DotNetSIMDTests)
 
-Resources:
+Additional Resources:
 - https://docs.microsoft.com/en-us/dotnet/standard/simd
 - https://devblogs.microsoft.com/dotnet/hardware-intrinsics-in-net-core/
 - https://instil.co/blog/simd-performance-with-csharp-and-cpp/
