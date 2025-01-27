@@ -11,3 +11,4 @@
 - [Sample Data Structure Analysis](./SampleDataStructureAnalysis/)
 - [OData schema change analyzer](./ODataModelChangeAnalyzer/)
 - [OData Lightweight URI parser](./ODataSlimUrlParserConcept/)
+- [.NET performance analysis intro](./DotNetPerfAnalysisIntro/)

@@ -1,0 +1,35 @@
+﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
+
+
+POST http://localhost:5208/readings
+Content-Type: text/plain
+Accept-Language: en-US,en;q=0.5
+
+location:Nairobi temp:24.5
+location:Kisumu temp:30.5
+location:Mombasa temp:28.5
+location:Nairobi temp:30
+
+###
+
+
+POST http://localhost:5208/readings
+Content-Type: text/plain
+Accept-Language: en-US,en;q=0.5
+
+location:Mombasa temp:26.6
+location:Mombasa temp:6.6
+location:Mombasa temp:34.9
+location:Dublin temp:33.6
+location:Nairobi temp:3.1
+location:Dublin temp:36.1
+location:Mombasa temp:29.0
+location:Mombasa temp:21.0
+location:Mombasa temp:9.5
+location:Dublin temp:41.0
+
+###
+
+
+GET http://localhost:5208/readings/Nairobi
+
