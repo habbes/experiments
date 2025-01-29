@@ -24,7 +24,7 @@ internal class DataReader
                 }
                 else if (word.StartsWith("temp:"))
                 {
-                    temperature = double.Parse(word.Split(':')[1]);
+                    double.TryParse(word.Split(':')[1], out temperature);
                 }
             }
 
