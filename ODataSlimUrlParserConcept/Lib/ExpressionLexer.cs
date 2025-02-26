@@ -63,6 +63,10 @@ public ref struct ExpressionLexer
             // it here to decide which approach to take.
             // Also, at this stage OData only matches the brackets, doesn't check whether
             // nested ( or { are balanced. That check probably happens later.
+            // OData also parses the array token at a later stage using a JSON parser. Here
+            // we opt to parse the array directly, token by token. But the JSON parsing
+            // is required, we can opt to consume the entire range of text in the array
+            // and parse it to the JSON parser later on.
             this.ReadArrayStart();
             return true;
         }
@@ -71,12 +75,6 @@ public ref struct ExpressionLexer
         {
             this.ReadArrayEnd();
             return true;
-        }
-
-        if (_source[_pos] == ',')
-        {
-            
-
         }
 
         throw new Exception($"Unexpected token at {_source.Slice(_pos).ToString()}");
@@ -195,6 +193,12 @@ public ref struct ExpressionLexer
     private void ReadArrayEnd()
     {
         // Caller ensures that the current char is ']'
+        // Check if we're in an array
+        if (_arrayDepth <= 0)
+        {
+            throw new Exception($"Unexpected ']' at position {_pos}.");
+        }
+
         _token = new Token()
         {
             Kind = ExpressionTokenKind.CloseBracket,

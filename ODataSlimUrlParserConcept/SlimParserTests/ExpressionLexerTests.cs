@@ -44,7 +44,8 @@ public class ExpressionLexerTests
     [Fact]
     public void ParsesArrayExpressionAndEmitsCorrectTokens()
     {
-        ReadOnlySpan<char> source = "category in ['electronics', 'books', name, 1, false]";
+        // We place commas and brackets to ensure they are correctly parsed as parts of strings and not as delimiters.
+        ReadOnlySpan<char> source = "category in ['electronics,,tech', 'books[]', name, 1, false]";
         ExpressionLexer lexer = new ExpressionLexer(source);
 
         Assert.True(lexer.Read());
@@ -61,11 +62,11 @@ public class ExpressionLexerTests
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.StringLiteral, lexer.CurrentToken.Kind);
-        Assert.Equal("electronics", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal("electronics,,tech", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.StringLiteral, lexer.CurrentToken.Kind);
-        Assert.Equal("books", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal("books[]", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
@@ -164,5 +165,19 @@ public class ExpressionLexerTests
         });
 
         Assert.Equal("Expected ']' but reached end of input.", error.Message);
+    }
+
+    [Theory]
+    [InlineData("]", 0)]
+    [InlineData("[[12, 3], 4, [ 5, [6, 8]]]]", 26)]
+    public void ThrowExceptionWhenArrayClosingBracketIsNotMatched(string source, int errorPosition)
+    {
+        Exception error = Assert.Throws<Exception>(() =>
+        {
+            var lexer = new ExpressionLexer(source);
+            while (lexer.Read()) { }
+        });
+
+        Assert.Equal($"Unexpected ']' at position {errorPosition}.", error.Message);
     }
 }
