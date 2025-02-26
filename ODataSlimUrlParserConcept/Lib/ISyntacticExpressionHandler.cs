@@ -11,9 +11,12 @@ public interface ISyntacticExpressionHandler<T>
     T HandleIdentifier(SlimQueryNode identifier);
     T HandleIntConstant(SlimQueryNode intConst);
     T HandleStringConstant(SlimQueryNode stringConst);
+    T HandleBoolConstant(SlimQueryNode boolConst);
+    T HandleArray(SlimQueryNode arrayNode);
     T HandleEq(SlimQueryNode eqNode);
     T HandleGt(SlimQueryNode gtNode);
     T HandleOr(SlimQueryNode orNode);
     T HandleAnd(SlimQueryNode andNode);
+    T HandleIn(SlimQueryNode inNode);
 }
 

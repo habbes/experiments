@@ -49,6 +49,9 @@ public class ExpressionParserTests
     [InlineData(
         "category eq 'electronics' or price gt 100",
         "((category eq 'electronics') or (price gt 100))")]
+    [InlineData(
+        "category in ['electronics', 1, [2,3,true]]",
+        "(category in ['electronics', 1, [2, 3, true]])")]
     public void GeneratesCorrectQueryWithQueryRewriter(string source, string expected)
     {
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());

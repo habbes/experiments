@@ -92,7 +92,7 @@ public struct SlimQueryNode
 
         // naive count, we should add count to expression node
         int count = 0;
-        var enumerator = this.GetArrayEnumerator();
+        var enumerator = this.EnumerateArray();
         while (enumerator.MoveNext())
         {
             count++;
@@ -110,7 +110,7 @@ public struct SlimQueryNode
 
         // TODO: optimize
         int pos = -1;
-        var enumerator = this.GetArrayEnumerator();
+        var enumerator = this.EnumerateArray();
         while (pos < index && enumerator.MoveNext())
         {
             pos++;
@@ -124,7 +124,7 @@ public struct SlimQueryNode
         throw new IndexOutOfRangeException($"The index {index} was out of the bounds of the array.");
     }
 
-    public ArrayEnumerator GetArrayEnumerator()
+    public ArrayEnumerator EnumerateArray()
     {
         return new ArrayEnumerator(this);
     }
@@ -136,15 +136,19 @@ public struct SlimQueryNode
             ExpressionNodeKind.Identifier => visitor.HandleIdentifier(this),
             ExpressionNodeKind.IntConstant => visitor.HandleIntConstant(this),
             ExpressionNodeKind.StringContant => visitor.HandleStringConstant(this),
+            ExpressionNodeKind.True => visitor.HandleBoolConstant(this),
+            ExpressionNodeKind.False => visitor.HandleBoolConstant(this),
+            ExpressionNodeKind.Array => visitor.HandleArray(this),
             ExpressionNodeKind.Eq => visitor.HandleEq(this),
             ExpressionNodeKind.Gt => visitor.HandleGt(this),
             ExpressionNodeKind.And => visitor.HandleAnd(this),
             ExpressionNodeKind.Or => visitor.HandleOr(this),
+            ExpressionNodeKind.In => visitor.HandleIn(this),
             _ => throw new InvalidOperationException($"Unknown node kind {this.Kind}")
         };
     }
 
-    public struct ArrayEnumerator : IEnumerator<SlimQueryNode>
+    public struct ArrayEnumerator : IEnumerator<SlimQueryNode>, IEnumerable<SlimQueryNode>
     {
         private readonly SlimQueryNode _arrayNode;
         private int _curIndex;
@@ -174,7 +178,7 @@ public struct SlimQueryNode
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _curIndex = -1;
         }
 
         public bool MoveNext()
@@ -220,7 +224,22 @@ public struct SlimQueryNode
 
         public void Reset()
         {
-            throw new NotImplementedException();
+            _curIndex = -2;
+        }
+
+        public ArrayEnumerator GetEnumerator()
+        {
+            return this;
+        }
+
+        IEnumerator<SlimQueryNode> IEnumerable<SlimQueryNode>.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
