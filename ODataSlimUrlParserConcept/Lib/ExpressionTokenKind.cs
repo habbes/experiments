@@ -8,4 +8,14 @@ public enum ExpressionTokenKind
     Identifier,
     StringLiteral,
     IntLiteral,
+    TrueLiteral,
+    FalseLiteral,
+    /// <summary>
+    /// The token '[' used to open an array.
+    /// </summary>
+    OpenBracket,
+    /// <summary>
+    /// The token ']' used to close an array.
+    /// </summary>
+    CloseBracket,
 }
