@@ -151,4 +151,18 @@ public class ExpressionLexerTests
 
         Assert.False(lexer.Read());
     }
+
+    [Theory]
+    [InlineData("[")]
+    [InlineData("[[12, 3], 4, [ 5, [6, 8]]")]
+    public void ThrowsExceptionWhenArrayNotTerminated(string source)
+    {
+        Exception error = Assert.Throws<Exception>(() =>
+        {
+            var lexer = new ExpressionLexer(source);
+            while (lexer.Read()) { }
+        });
+
+        Assert.Equal("Expected ']' but reached end of input.", error.Message);
+    }
 }

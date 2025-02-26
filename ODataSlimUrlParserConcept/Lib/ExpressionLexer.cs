@@ -8,6 +8,7 @@ public ref struct ExpressionLexer
     ReadOnlySpan<char> _source;
     Token _token;
     int _pos = 0;
+    int _arrayDepth = 0;
 
     public ExpressionLexer(ReadOnlySpan<char> source)
     {
@@ -20,6 +21,11 @@ public ref struct ExpressionLexer
     {
         if (!this.SkipOverWhitespace())
         {
+            if (_arrayDepth > 0)
+            {
+                throw new Exception("Expected ']' but reached end of input.");
+            }
+
             return false;
         }
 
@@ -181,6 +187,8 @@ public ref struct ExpressionLexer
             Kind = ExpressionTokenKind.OpenBracket,
             Range = new ValueRange(_pos, 1)
         };
+
+        _arrayDepth++;
         _pos++;
     }
 
@@ -192,14 +200,8 @@ public ref struct ExpressionLexer
             Kind = ExpressionTokenKind.CloseBracket,
             Range = new ValueRange(_pos, 1)
         };
-        _pos++;
-    }
 
-    private void ReadComma()
-    {
-        // Caller ensures that the current char is ','
-        // TODO: we simply skip over the comma for now, but
-        // we should ensure a comma is valid at this point.
+        _arrayDepth--;
         _pos++;
     }
 
