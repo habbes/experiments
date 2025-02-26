@@ -14,11 +14,14 @@ public enum SemanticNodeKind
     SingleValuePropertyAccess,
     OpenPropertyAccess,
     IntConstant,
+    BoolConstant,
     StringConstant,
+    Array,
     Or,
     And,
     Gt,
-    Eq
+    Eq,
+    In
 }
 
 public class SingleValuePropertyAccessNode : SemanticNode
@@ -85,6 +88,14 @@ public class GtNode : BinaryLogicalOperatorNode
     public override SemanticNodeKind Kind => SemanticNodeKind.Gt;
 }
 
+public class InNode : BinaryLogicalOperatorNode
+{
+    public InNode(SemanticNode left, SemanticNode right) : base(left, right)
+    {
+    }
+
+    public override SemanticNodeKind Kind => SemanticNodeKind.In;
+}
 
 public class StringLiteralNode : SemanticNode
 {
@@ -112,6 +123,19 @@ public class IntLiteralNode : SemanticNode
     public override IEdmTypeReference EdmType => EdmCoreModel.Instance.GetInt32(isNullable: false);
 }
 
+public class BoolLiteralNode : SemanticNode
+{
+    public BoolLiteralNode(bool value)
+    {
+        Value = value;
+    }
+
+    public bool Value { get; private set; }
+
+    public override SemanticNodeKind Kind => SemanticNodeKind.BoolConstant;
+    public override IEdmTypeReference EdmType => EdmCoreModel.Instance.GetBoolean(isNullable: false);
+}
+
 
 public class OpenPropertyAccessNode : SemanticNode
 {
@@ -123,4 +147,17 @@ public class OpenPropertyAccessNode : SemanticNode
 
     public override SemanticNodeKind Kind => SemanticNodeKind.OpenPropertyAccess;
     public override IEdmTypeReference EdmType => EdmCoreModel.Instance.GetUntyped();
+}
+
+public class ArrayNode : SemanticNode
+{
+    public ArrayNode(IEnumerable<SemanticNode> values)
+    {
+        Values = values;
+    }
+
+    public IEnumerable<SemanticNode> Values { get; private set; }
+
+    public override SemanticNodeKind Kind => SemanticNodeKind.Array;
+    public override IEdmTypeReference EdmType => EdmCoreModel.GetCollection(Values.First().EdmType);
 }

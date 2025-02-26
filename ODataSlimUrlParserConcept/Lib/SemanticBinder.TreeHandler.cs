@@ -69,6 +69,11 @@ public partial class SemanticBinder
             return new IntLiteralNode(intConst.GetInt());
         }
 
+        public SemanticNode HandleBoolConstant(SlimQueryNode boolConst)
+        {
+            return new BoolLiteralNode(boolConst.GetBoolean());
+        }
+
         public SemanticNode HandleOr(SlimQueryNode orNode)
         {
             var left = orNode.GetLeft().Accept(this);
@@ -82,6 +87,21 @@ public partial class SemanticBinder
             return new StringLiteralNode(stringConst.GetString());
         }
 
+        public SemanticNode HandleArray(SlimQueryNode arrayNode)
+        {
+            var values = arrayNode.EnumerateArray().Select(v => v.Accept(this));
+            return new ArrayNode(values);
+        }
+
+        public SemanticNode HandleIn(SlimQueryNode inNode)
+        {
+            var left = inNode.GetLeft().Accept(this);
+            var right = inNode.GetRight().Accept(this);
+
+            ValidateSameType(left.EdmType, right.EdmType.AsCollection().ElementType());
+            return new InNode(left, right);
+        }
+
         private static void ValidateSameType(SemanticNode left, SemanticNode right)
         {
             if (left.EdmType.Definition != right.EdmType.Definition)
@@ -89,6 +109,16 @@ public partial class SemanticBinder
                 throw new InvalidOperationException($"Cannot compare values of different types: {left.EdmType.Definition.FullTypeName()} and {right.EdmType.Definition.FullTypeName()}");
             }
         }
+
+        private static void ValidateSameType(IEdmTypeReference left, IEdmTypeReference right)
+        {
+            if (left.Definition != right.Definition)
+            {
+                throw new InvalidOperationException($"Cannot compare values of different types: {left.Definition.FullTypeName()} and {right.Definition.FullTypeName()}");
+            }
+        }
+
+
 
         record struct State(IEdmType ParentType);
     }
