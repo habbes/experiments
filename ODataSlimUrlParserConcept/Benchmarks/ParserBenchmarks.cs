@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using Lib;
 using Lib.SampleVisitors;
 using Microsoft.OData.Edm;
@@ -14,6 +15,8 @@ using System.Xml;
 namespace Benchmarks;
 
 [MemoryDiagnoser]
+[GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+[CategoriesColumn]
 public class ParserBenchmarks
 {
     private const string Schema = """
@@ -44,15 +47,17 @@ public class ParserBenchmarks
     private static readonly IEdmNavigationSource navSource = model.EntityContainer.FindEntitySet("products");
 
     private static readonly string filterExpression = "category eq 'electronics' or price gt 100";
-
     private static readonly string uriString = $"products(1)?$filter={filterExpression}";
-
     private static readonly Uri uri = new(uriString, UriKind.Relative);
-
     private static Dictionary<string, string> queryOptions = new() { { "$filter", filterExpression } };
 
+    private static readonly string filterExpressionWithInAndArrays = "category in ['electronics', 'technology']";
+    private static readonly string uriStringWithInAndArrays = $"products(1)?$filter={filterExpressionWithInAndArrays}";
+    private static readonly Uri uriWithInAndArrays = new(uriStringWithInAndArrays, UriKind.Relative);
 
-    [Benchmark]
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("ParseExpression")]
     public FilterClause ParseExpression_ODataQueryOptionParser()
     {
         // We have to construct the query options parser in the benchmark since it caches
@@ -68,6 +73,7 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("ParseExpression")]
     public QueryToken ParseExpression_UriQueryExpressionParser()
     {
         UriQueryExpressionParser parser = new(100);
@@ -76,6 +82,7 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("ParseExpression")]
     public SemanticNode ParseExpression_SlimSemanticBinder()
     {
         SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
@@ -83,6 +90,7 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("ParseExpression")]
     public SlimQueryNode ParseExpression_SlimQueryParser()
     {
         SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
@@ -90,14 +98,54 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("ParseExpression")]
     public ExpressionLexer ParseExpression_SlimExpressionLexer()
     {
         var lexer = new ExpressionLexer(filterExpression);
-        while (lexer.Read()) { };
+        while (lexer.Read()) { }
         return lexer;
     }
 
+    #region "ParseExpressionWithInAndArrays"
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("ParseExpressionWithInAndArrays")]
+    public QueryToken ParseExpressionWithInAndArrays_UriQueryExpressionParser()
+    {
+        UriQueryExpressionParser parser = new(100);
+        QueryToken expression = parser.ParseFilter(filterExpressionWithInAndArrays);
+        return expression;
+    }
+
     [Benchmark]
+    [BenchmarkCategory("ParseExpressionWithInAndArrays")]
+    public SemanticNode ParseExpressionWithInAndArrays_SlimSemanticBinder()
+    {
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpressionWithInAndArrays.AsMemory());
+        return SemanticBinder.Bind(slimQuery, model, edmType);
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("ParseExpressionWithInAndArrays")]
+    public SlimQueryNode ParseExpressionWithInAndArrays_SlimQueryParser()
+    {
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpressionWithInAndArrays.AsMemory());
+        return slimQuery;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("ParseExpressionWithInAndArrays")]
+    public ExpressionLexer ParseExpressionWithInAndArrays_SlimExpressionLexer()
+    {
+        var lexer = new ExpressionLexer(filterExpressionWithInAndArrays);
+        while (lexer.Read()) { }
+        return lexer;
+    }
+
+    #endregion
+
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("QueryRoundTrip")]
     public string QueryRoundTrip_UriQueryExpressionParser()
     {
         var rewriter = new ODataQueryRewriter();
@@ -108,6 +156,7 @@ public class ParserBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("QueryRoundTrip")]
     public string QueryRoundTrip_SlimQueryParser()
     {
         var rewriter = new SlimQueryRewriter();
@@ -116,7 +165,30 @@ public class ParserBenchmarks
         return rewriter.GetQuery();
     }
 
+    #region round trip with in and arrays
 
+    [Benchmark(Baseline = true)]
+    [BenchmarkCategory("QueryRoundTripWithInAndArrays")]
+    public string QueryRoundTripWithInAndArrays_UriQueryExpressionParser()
+    {
+        var rewriter = new ODataQueryRewriter();
+        UriQueryExpressionParser parser = new(100);
+        QueryToken expression = parser.ParseFilter(filterExpressionWithInAndArrays);
+        expression.Accept(rewriter);
+        return rewriter.GetQuery();
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("QueryRoundTripWithInAndArrays")]
+    public string QueryRoundTripWithInAndArrays_SlimQueryParser()
+    {
+        var rewriter = new SlimQueryRewriter();
+        SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpressionWithInAndArrays.AsMemory());
+        slimQuery.Accept(rewriter);
+        return rewriter.GetQuery();
+    }
+
+    #endregion
 
     private static IEdmModel GetModel()
     {
@@ -125,4 +197,5 @@ public class ParserBenchmarks
         var model = CsdlReader.Parse(xmlReader);
         return model;
     }
+
 }
