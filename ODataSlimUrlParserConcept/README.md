@@ -153,12 +153,14 @@ I want to introduce a "lighter weight" semantic binder between the syntactic par
 and binds semantic context on demand (lazily). This could be ideal for a lightweight single-pass traversal of the tree. The semantic context could be cached if multiple passes are expected,
 or if we expect multiple passes, we create an expression tree with all the nodes materialized, like what we have here.
 
-
 ## Checkpoint 4 : Support complex-nested expressions
 
 TODO:
 
 - Add support for in operator and array expressions
 - Add support for parenthesized nested expressions
+- Support other query options:
+  - Select with nesting supported
+  - groupby and aggregate
 - optional: support for arithmetic operators
 - optional: support for other data types
