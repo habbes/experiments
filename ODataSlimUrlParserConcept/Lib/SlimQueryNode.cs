@@ -1,4 +1,6 @@
-﻿namespace Lib;
+﻿using System.Collections;
+
+namespace Lib;
 
 public struct SlimQueryNode
 {
@@ -20,7 +22,7 @@ public struct SlimQueryNode
             throw new InvalidOperationException("Node is not a binary operator");
         }
 
-        return new SlimQueryNode(_parent, _parent[_index].Left);
+        return new SlimQueryNode(_parent, _parent[_index].FirstChild);
     }
 
     public SlimQueryNode GetRight()
@@ -30,7 +32,7 @@ public struct SlimQueryNode
             throw new InvalidOperationException("Node is not a binary operator");
         }
 
-        return new SlimQueryNode(_parent, _parent[_index].Right);
+        return new SlimQueryNode(_parent, _parent[_index].LastChild);
     }
 
     public ReadOnlySpan<char> GetRawValueSpan()
@@ -41,6 +43,16 @@ public struct SlimQueryNode
     public ReadOnlyMemory<char> GetRawValueMemory()
     {
         return _parent.GetValueMemory(_index);
+    }
+
+    public bool GetBoolean()
+    {
+        return this.Kind switch
+        {
+            ExpressionNodeKind.True => true,
+            ExpressionNodeKind.False => false,
+            _ => throw new InvalidOperationException("Node is not a boolean")
+        };
     }
 
     public int GetInt()
@@ -67,7 +79,54 @@ public struct SlimQueryNode
         {
             throw new InvalidOperationException("Node is not an identifier");
         }
+
         return GetRawValueSpan().ToString();
+    }
+
+    public int GetCount()
+    {
+        if (this.Kind != ExpressionNodeKind.Array)
+        {
+            throw new InvalidOperationException("Node is not an array");
+        }
+
+        // naive count, we should add count to expression node
+        int count = 0;
+        var enumerator = this.GetArrayEnumerator();
+        while (enumerator.MoveNext())
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    public SlimQueryNode GetElement(int index)
+    {
+        if (this.Kind != ExpressionNodeKind.Array)
+        {
+            throw new InvalidOperationException("Node is not an array");
+        }
+
+        // TODO: optimize
+        int pos = -1;
+        var enumerator = this.GetArrayEnumerator();
+        while (pos < index && enumerator.MoveNext())
+        {
+            pos++;
+        }
+
+        if (pos == index)
+        {
+            return enumerator.Current;
+        }
+
+        throw new IndexOutOfRangeException($"The index {index} was out of the bounds of the array.");
+    }
+
+    public ArrayEnumerator GetArrayEnumerator()
+    {
+        return new ArrayEnumerator(this);
     }
 
     public T Accept<T>(ISyntacticExpressionHandler<T> visitor)
@@ -83,5 +142,85 @@ public struct SlimQueryNode
             ExpressionNodeKind.Or => visitor.HandleOr(this),
             _ => throw new InvalidOperationException($"Unknown node kind {this.Kind}")
         };
+    }
+
+    public struct ArrayEnumerator : IEnumerator<SlimQueryNode>
+    {
+        private readonly SlimQueryNode _arrayNode;
+        private int _curIndex;
+        private readonly int _lastIndex;
+
+        public ArrayEnumerator(SlimQueryNode arrayNode)
+        {
+            _arrayNode = arrayNode;
+            _curIndex = -2;
+            _lastIndex = _arrayNode._parent[_arrayNode._index].LastChild;
+        }
+
+        public SlimQueryNode Current
+        {
+            get
+            {
+                if (_curIndex == -1)
+                {
+                    return default;
+                }
+
+                return new SlimQueryNode(_arrayNode._parent, _curIndex);
+            }
+        }
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool MoveNext()
+        {
+            // at beginnging _curIndex == -2,
+            if (_curIndex == -2)
+            {
+                _curIndex = _arrayNode._parent[_arrayNode._index].FirstChild;
+                return _curIndex >= 0;
+            }
+
+            // if array is empty, lastChild will be -1, return false,
+            if (_curIndex == -1)
+            {
+                return false;
+            }
+
+            // if current item is terminal, increment index,
+            int lastChild = _arrayNode._parent[_curIndex].LastChild;
+            if (lastChild == -1)
+            {
+                _curIndex += 1;
+                return _curIndex <= _lastIndex;
+            }
+
+            // if current item is non-terminal, find the end index of the
+            // current item by jumping over all it's (nested) children
+            int nextIndex = lastChild;
+            while (lastChild != -1)
+            {
+                lastChild = _arrayNode._parent[nextIndex].LastChild;
+                if (lastChild != -1)
+                {
+                    nextIndex = lastChild;
+                }
+            }
+
+            _curIndex = nextIndex;
+
+            // if _curIndex == lastChild, reached end, return false
+            return _curIndex >= 0 && _curIndex <= _lastIndex;
+        }
+
+        public void Reset()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

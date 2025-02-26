@@ -95,6 +95,11 @@ public ref struct ExpressionLexer
         throw new Exception($"Unexpected '{_source[_pos]}' at position {_pos}, near {_source.Slice(_pos).ToString()}.");
     }
 
+    public bool IsInArray()
+    {
+        return _arrayDepth > 0;
+    }
+
     private bool SkipOverWhitespace()
     {
         // TODO: skipping over commas is a hack for now. We should detect

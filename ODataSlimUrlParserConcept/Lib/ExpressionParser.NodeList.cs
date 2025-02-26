@@ -30,7 +30,7 @@ public partial class ExpressionParser
             _list[_length++] = node;
         }
 
-        public ExpressionNode this[int index]
+        public ref ExpressionNode this[int index]
         {
             get
             {
@@ -39,7 +39,7 @@ public partial class ExpressionParser
                     throw new IndexOutOfRangeException();
                 }
 
-                return _list![index];
+                return ref _list![index];
             }
         }
 

@@ -25,12 +25,35 @@ public class ExpressionParserTests
     }
 
     [Fact]
-    public void GeneratesCorrectQueryWithQueryRewriter()
+    public void ParsesArrayExpressions()
     {
-        string source = "category eq 'electronics' or price gt 100";
+        string source = "category in ['electronics', 1, [2,3,true]]";
+        SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
+        Assert.Equal(ExpressionNodeKind.In, node.Kind);
+        Assert.Equal("category", node.GetLeft().GetIdentifier());
+        SlimQueryNode arrayNode = node.GetRight();
+        Assert.Equal(ExpressionNodeKind.Array, arrayNode.Kind);
+        Assert.Equal(3, arrayNode.GetCount());
+        Assert.Equal("electronics", arrayNode.GetElement(0).GetString());
+        Assert.Equal(1, arrayNode.GetElement(1).GetInt());
+
+        var innerArrayNode = arrayNode.GetElement(2);
+        Assert.Equal(ExpressionNodeKind.Array, innerArrayNode.Kind);
+        Assert.Equal(3, innerArrayNode.GetCount());
+        Assert.Equal(2, innerArrayNode.GetElement(0).GetInt());
+        Assert.Equal(3, innerArrayNode.GetElement(1).GetInt());
+        Assert.True(innerArrayNode.GetElement(2).GetBoolean());
+    }
+
+    [Theory]
+    [InlineData(
+        "category eq 'electronics' or price gt 100",
+        "((category eq 'electronics') or (price gt 100))")]
+    public void GeneratesCorrectQueryWithQueryRewriter(string source, string expected)
+    {
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
         SlimQueryRewriter rewriter = new();
         node.Accept(rewriter);
-        Assert.Equal("((category eq 'electronics') or (price gt 100))", rewriter.GetQuery());
+        Assert.Equal(expected, rewriter.GetQuery());
     }
 }

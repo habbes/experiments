@@ -4,6 +4,7 @@ public partial class ExpressionParser : IDisposable
 {
     readonly ReadOnlyMemory<char> _source;
     NodeList _nodes;
+    bool _currentTokenPending = false;
 
     private static readonly int[] OperatorPrecedence = CreateOperatorPrecedenceMap();
 
@@ -16,6 +17,7 @@ public partial class ExpressionParser : IDisposable
         map[(int)ExpressionNodeKind.And] = 2;
         map[(int)ExpressionNodeKind.Eq] = 3;
         map[(int)ExpressionNodeKind.Gt] = 3;
+        map[(int)ExpressionNodeKind.In] = 3;
 
         return map;
     }
@@ -50,41 +52,64 @@ public partial class ExpressionParser : IDisposable
 
     internal ReadOnlyMemory<char> GetValueMemory(int index) => _nodes[index].Range.GetMemory(_source);
 
-    // This version does not take precedence into account
-    private int ParseExpression(ref ExpressionLexer lexer, ref NodeList nodes)
-    {
-        lexer.Read();
-        int left = ParseTerm(ref lexer, ref nodes);
-        while (lexer.Read())
-        {
-            if (TryGetOperator(lexer.CurrentToken, out var op))
-            {
-                //lexer.Read();
-                int right = ParseExpression(ref lexer, ref nodes);
-                left = AddNode(ref nodes, new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
-            }
-            else
-            {
-                // We don't expect consecutive terms without an operator
-                throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
-            }
-        }
+    //// This version does not take precedence into account
+    //private int ParseExpression(ref ExpressionLexer lexer, ref NodeList nodes)
+    //{
+    //    lexer.Read();
+    //    int left = ParseTerm(ref lexer, ref nodes);
+    //    while (lexer.Read())
+    //    {
+    //        if (TryGetOperator(lexer.CurrentToken, out var op))
+    //        {
+    //            //lexer.Read();
+    //            int right = ParseExpression(ref lexer, ref nodes);
+    //            left = AddNode(ref nodes, new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
+    //        }
+    //        else
+    //        {
+    //            // We don't expect consecutive terms without an operator
+    //            throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
+    //        }
+    //    }
 
-        return left;
-    }
+    //    return left;
+    //}
 
     private int ParseExpressionWithPrecedence(ref ExpressionLexer lexer, ref NodeList nodes, int minPrecedence)
     {
-        lexer.Read();
-        int left = ParseTerm(ref lexer, ref nodes);
+        if (!(_currentTokenPending && lexer.IsInArray()))
+        {
+            lexer.Read();
+        }
 
+        _currentTokenPending = false;
+
+        int left = ParseTerm(ref lexer, ref nodes);
+        // this assumes the next token is an operator because we usually don't
+        // expect consecutive terms.
+        // But we can have consecutive terms in some cases:
+        // - array values,
+        // - function params
+        // - select items, etc.
+        // If the next item is an operator, then try to parse the operator expressation,
+        // but it's a term then let's read it as a standalone valie in the next token
         lexer.Read();
+        
         while (TryGetOperator(lexer.CurrentToken, out var op) &&
                 TryGetOperatorPrecedence(op, out var precedence) &&
                 precedence >= minPrecedence)
         {
             int right = ParseExpressionWithPrecedence(ref lexer, ref nodes, precedence + 1);
             left = AddNode(ref nodes, new ExpressionNode(op, lexer.CurrentToken.Range, left, right));
+        }
+
+        if (!nodes[left].Kind.IsBinaryOperator())
+        {
+            // we did not read an operator. This means
+            // we have not process the current token that
+            // we last read. We set this flag so that
+            // we do not skip over it in the next parse.
+            _currentTokenPending = true;
         }
 
         return left;
@@ -94,21 +119,69 @@ public partial class ExpressionParser : IDisposable
     {
         if (lexer.CurrentToken.Kind == ExpressionTokenKind.Identifier)
         {
-            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.Identifier, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.Identifier, lexer.CurrentToken.Range));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.IntLiteral)
         {
-            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.IntConstant, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.IntConstant, lexer.CurrentToken.Range));
         }
         else if (lexer.CurrentToken.Kind == ExpressionTokenKind.StringLiteral)
         {
-            return AddNode(ref nodes,new ExpressionNode(ExpressionNodeKind.StringContant, lexer.CurrentToken.Range, 0, 0));
+            return AddNode(ref nodes,new ExpressionNode(ExpressionNodeKind.StringContant, lexer.CurrentToken.Range));
+        }
+        else if (lexer.CurrentToken.Kind == ExpressionTokenKind.TrueLiteral)
+        {
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.True, lexer.CurrentToken.Range));
+        }
+        else if (lexer.CurrentToken.Kind == ExpressionTokenKind.FalseLiteral)
+        {
+            return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.False, lexer.CurrentToken.Range));
+        }
+        else if (lexer.CurrentToken.Kind == ExpressionTokenKind.OpenBracket)
+        {
+            return ParseArray(ref lexer, ref nodes);
         }
         else
         {
             throw new Exception($"Unexpected token {lexer.CurrentToken.Kind} {lexer.CurrentToken.Range.GetSpan(_source.Span)}");
         }
+    }
 
+    private int ParseArray(ref ExpressionLexer lexer, ref NodeList nodes)
+    {
+        int index = AddNode(ref nodes, new(ExpressionNodeKind.Array, lexer.CurrentToken.Range));
+
+        //if (!lexer.Read())
+        //{
+        //    throw new Exception("Reached unexpected end of input while parsing array.");
+        //}
+
+        int firstChild = -1;
+        int lastChild = -1;
+
+        if (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseBracket)
+        {
+            firstChild = lastChild = ParseExpressionWithPrecedence(ref lexer, ref nodes, 0);
+        }
+        
+        //if (!lexer.Read())
+        //{
+        //    throw new Exception("Reached unexpected end of input while parsing array.");
+        //}
+
+        while (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseBracket)
+        {
+            lastChild = ParseExpressionWithPrecedence(ref lexer, ref nodes, 0);
+        }
+
+        // last token was CloseBracket, read to consume the token
+        lexer.Read();
+
+        ref var arrayNode = ref nodes[index];
+        arrayNode.FirstChild = firstChild;
+        arrayNode.LastChild = lastChild;
+
+        return index;
     }
 
     private static int AddNode(ref NodeList nodes, ExpressionNode node)
@@ -146,6 +219,11 @@ public partial class ExpressionParser : IDisposable
             op = ExpressionNodeKind.Or;
             return true;
         }
+        else if (tokenValue.Equals("in", StringComparison.Ordinal))
+        {
+            op = ExpressionNodeKind.In;
+            return true;
+        }
         else
         {
             return false;
@@ -162,6 +240,4 @@ public partial class ExpressionParser : IDisposable
     {
         _nodes.Dispose();
     }
-
-    internal record struct ExpressionNode(ExpressionNodeKind Kind, ValueRange Range, int Left, int Right);
 }
