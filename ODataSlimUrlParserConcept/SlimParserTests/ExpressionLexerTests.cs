@@ -180,4 +180,31 @@ public class ExpressionLexerTests
 
         Assert.Equal($"Unexpected ']' at position {errorPosition}.", error.Message);
     }
+
+    [Theory]
+    [InlineData("[,", 1)]
+    [InlineData("[12, ,4]", 5)]
+    public void ThrowsExceptionWhenArrayContainsMisplacedCommas(string source, int errorPosition)
+    {
+        Exception error = Assert.Throws<Exception>(() =>
+        {
+            var lexer = new ExpressionLexer(source);
+            while (lexer.Read()) { }
+        });
+
+        Assert.StartsWith($"Unexpected ',' at position {errorPosition}", error.Message);
+    }
+
+    [Fact]
+    public void ThrowsExceptionWhenArrayClosedAfterComma()
+    {
+        string source = "[12, 4,]";
+        Exception error = Assert.Throws<Exception>(() =>
+        {
+            var lexer = new ExpressionLexer(source);
+            while (lexer.Read()) { }
+        });
+
+        Assert.StartsWith($"Unexpected ']' at position 7", error.Message);
+    }
 }

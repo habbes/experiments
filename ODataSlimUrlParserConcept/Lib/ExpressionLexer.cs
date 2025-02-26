@@ -9,6 +9,8 @@ public ref struct ExpressionLexer
     Token _token;
     int _pos = 0;
     int _arrayDepth = 0;
+    bool _arraySeparatorExpected = false;
+    bool _valueExpected = false;
 
     public ExpressionLexer(ReadOnlySpan<char> source)
     {
@@ -32,6 +34,19 @@ public ref struct ExpressionLexer
         if (_source.Length == _pos)
         {
             return false;
+        }
+
+        if (_arraySeparatorExpected)
+        {
+            // Array can be closed where a separator is expected;
+            if (_source[_pos] == ']')
+            {
+                this.ReadArrayEnd();
+                return true;
+            }
+
+            this.CheckAndConsumeComma();
+            this.SkipOverWhitespace();
         }
 
         if (_source[_pos] == '\'')
@@ -77,14 +92,14 @@ public ref struct ExpressionLexer
             return true;
         }
 
-        throw new Exception($"Unexpected token at {_source.Slice(_pos).ToString()}");
+        throw new Exception($"Unexpected '{_source[_pos]}' at position {_pos}, near {_source.Slice(_pos).ToString()}.");
     }
 
     private bool SkipOverWhitespace()
     {
         // TODO: skipping over commas is a hack for now. We should detect
         // commas at invalid positions and handle that.
-        while (_pos < _source.Length && (_source[_pos] == ' ' || _source[_pos] == ','))
+        while (_pos < _source.Length && (_source[_pos] == ' '))
         {
            _pos++;
         }
@@ -99,6 +114,7 @@ public ref struct ExpressionLexer
 
     private void ReadString()
     {
+        OnReadingValue();
         int start = ++_pos; // skip opening quote
         // Naive string, assume no escaping
         while (_pos < _source.Length && _source[_pos] != '\'')
@@ -122,6 +138,7 @@ public ref struct ExpressionLexer
 
     private void ReadInteger()
     {
+        OnReadingValue();
         int start = _pos;
         while (_pos < _source.Length && IsDigit(_source[_pos]))
         {
@@ -138,6 +155,7 @@ public ref struct ExpressionLexer
 
     private void ReadIdentifier()
     {
+        OnReadingValue();
         int start = _pos;
         _pos++; // the caller ensures that the first char is an alpha char
         while (_pos < _source.Length && (IsAlpha(_source[_pos]) || IsDigit(_source[_pos])))
@@ -194,7 +212,7 @@ public ref struct ExpressionLexer
     {
         // Caller ensures that the current char is ']'
         // Check if we're in an array
-        if (_arrayDepth <= 0)
+        if (_arrayDepth <= 0 || _valueExpected)
         {
             throw new Exception($"Unexpected ']' at position {_pos}.");
         }
@@ -206,8 +224,62 @@ public ref struct ExpressionLexer
         };
 
         _arrayDepth--;
+
+        if (_arrayDepth > 0)
+        {
+            // if we're still in an array, then we've just closed a nested array
+            // which should be treated like any other value
+            OnReadingValue();
+        }
+
         _pos++;
     }
+
+    /// <summary>
+    /// Consumes the comma separator if it's expected at this position.
+    /// Throws an exception if the comma is not expected.
+    /// Throws an exception if the current character is not a comma.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    private void CheckAndConsumeComma()
+    {
+        if (_arrayDepth == 0 || _token.Kind == ExpressionTokenKind.OpenBracket)
+        {
+            throw new Exception($"Unexpected ',' at position {_pos}.");
+        }
+
+        if (!_arraySeparatorExpected)
+        {
+            throw new Exception($"Unexpected ',' at position {_pos}.");
+        }
+
+        // caller does not check if character is ','
+        if (_source[_pos] != ',')
+        {
+            throw new Exception($"Expected ',' at position {_pos} but found {_source[_pos]}.");
+        }
+
+        _pos++;
+        _arraySeparatorExpected = false;
+        _valueExpected = true;
+    }
+
+    /// <summary>
+    /// Called before reading each value token (e.g. identifier, literals, etc.)
+    /// </summary>
+    private void OnReadingValue()
+    {
+        // check if in array
+        // set flag to indicate that comma is expected
+        if (_arrayDepth > 0)
+        {
+            _arraySeparatorExpected = true;
+        }
+
+        _valueExpected = false;
+    }
+
+
 
     private static bool IsDigit(char c) => c >= '0' && c <= '9';
     private static bool IsAlpha(char c) => (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
