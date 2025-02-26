@@ -85,4 +85,70 @@ public class ExpressionLexerTests
 
         Assert.False(lexer.Read());
     }
+
+    [Fact]
+    public void ParseNestedArrayExpressionAndEmitCorrectTokens()
+    {
+        ReadOnlySpan<char> source = "[[12, 3], 4, [ 5, [6, 8]]]";
+        ExpressionLexer lexer = new ExpressionLexer(source);
+
+        // write test
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("12", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("3", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("4", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("5", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("6", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
+        Assert.Equal("8", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.True(lexer.Read());
+        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
+        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+
+        Assert.False(lexer.Read());
+    }
 }
