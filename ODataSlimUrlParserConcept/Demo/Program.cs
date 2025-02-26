@@ -57,6 +57,7 @@ var uri = new Uri("http://service/products(1)?filter=category in ('stationery', 
 //Console.ReadLine();
 
 UriQueryExpressionParser queryExpressionParser = new(100);
+filterExpression = "category in ['electronics']";
 QueryToken filterToken = queryExpressionParser.ParseFilter(filterExpression);
 
 //Console.ReadLine();

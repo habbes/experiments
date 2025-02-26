@@ -162,5 +162,14 @@ TODO:
 - Support other query options:
   - Select with nesting supported
   - groupby and aggregate
+- optional: support for segments (parent/property)
+- optional: support function calls
+- optional: support for prefixed literals (e.g. time, datetime)
+- optional: support for escaped strings
+- optional: support
 - optional: support for arithmetic operators
 - optional: support for other data types
+
+## Checkpoint 5: More performance optimizations
+
+Perf optimizations after demonstrating support for key scenarios and functionality. Feel free to go wild.

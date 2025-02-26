@@ -47,7 +47,6 @@ public class ExpressionLexerTests
         ReadOnlySpan<char> source = "category in ['electronics', 'books', name, 1, false]";
         ExpressionLexer lexer = new ExpressionLexer(source);
 
-        // implement unit test
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
         Assert.Equal("category", lexer.CurrentToken.Range.GetSpan(source).ToString());
