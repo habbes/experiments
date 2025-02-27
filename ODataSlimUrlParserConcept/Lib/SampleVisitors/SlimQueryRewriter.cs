@@ -83,7 +83,7 @@ public class SlimQueryRewriter : ISyntacticExpressionHandler<bool>
 
     public bool HandleArray(SlimQueryNode arrayNode)
     {
-        query.Append('[');
+        query.Append('(');
 
         var enumerator = arrayNode.EnumerateArray();
         if (enumerator.MoveNext())
@@ -97,7 +97,7 @@ public class SlimQueryRewriter : ISyntacticExpressionHandler<bool>
             item.Accept(this);
         }
 
-        query.Append(']');
+        query.Append(')');
 
         return true;
     }

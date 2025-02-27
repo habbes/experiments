@@ -28,7 +28,7 @@ public class ExpressionParserTests
     [Fact]
     public void ParsesArrayExpressions()
     {
-        string source = "category in ['electronics', 1, [2,3,true]]";
+        string source = "category in ('electronics', 1, (2,3,true))";
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
         Assert.Equal(ExpressionNodeKind.In, node.Kind);
         Assert.Equal("category", node.GetLeft().GetIdentifier());
@@ -51,8 +51,8 @@ public class ExpressionParserTests
         "category eq 'electronics' or price gt 100",
         "((category eq 'electronics') or (price gt 100))")]
     [InlineData(
-        "category in ['electronics', 1, [2,3,true]]",
-        "(category in ['electronics', 1, [2, 3, true]])")]
+        "category in ('electronics', 1, (2,3,true))",
+        "(category in ('electronics', 1, (2, 3, true)))")]
     public void GeneratesCorrectQueryWithQueryRewriter(string source, string expected)
     {
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
@@ -68,8 +68,10 @@ public class ExpressionParserTests
         "category eq 'electronics' or price gt 100",
         "((category eq 'electronics') or (price gt 100))")]
     [InlineData(
-        "category in ['electronics', 1, [2,3,true]]",
-        "(category in ['electronics', 1, [2, 3, true]])")]
+        "category in ('electronics', 1, (2,3,true))",
+        // OData parser parses the array as literal and stores it as a string.
+        // It's only transformed into an collection later on by the semantic binder.
+        "(category in '('electronics', 1, (2,3,true))')")]
     public void ODataQueryRewriterGeneratesCorrectQuery(string source, string expected)
     {
         var rewriter = new ODataQueryRewriter();

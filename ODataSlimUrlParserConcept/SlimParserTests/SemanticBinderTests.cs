@@ -43,7 +43,7 @@ public class SemanticBinderTests
     public void BindSemanticContextToInExpressionWithArrayOperand()
     {
         // Arrange
-        string source = "category in ['electronics', 'technology']";
+        string source = "category in ('electronics', 'technology')";
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
 
         // Act
