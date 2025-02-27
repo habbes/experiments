@@ -80,6 +80,14 @@ Console.ReadLine();
 
 var semanticTree = SemanticBinder.Bind(slimQuery, model, model.FindDeclaredType("test.ns.product"));
 
+//filterExpression = "category in ['electronics', 'shoes']";
+var odataUrParser = new ODataUriParser(model, uri);
+var f = odataUrParser.ParseFilter();
+
+//var rewriter = new ODataQueryRewriter();
+//f.Expression.Accept<bool>(rewriter);
+
+
 Console.ReadLine();
 
 

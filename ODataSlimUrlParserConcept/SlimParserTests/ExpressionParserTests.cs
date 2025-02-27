@@ -1,5 +1,6 @@
 ﻿using Lib;
 using Lib.SampleVisitors;
+using Microsoft.OData.UriParser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,26 @@ public class ExpressionParserTests
         SlimQueryNode node = ExpressionParser.Parse(source.AsMemory());
         SlimQueryRewriter rewriter = new();
         node.Accept(rewriter);
+        Assert.Equal(expected, rewriter.GetQuery());
+    }
+
+    // Use the same test cases as in the previous test to ensure
+    // OData and Slim parser generate the same results.
+    [Theory]
+    [InlineData(
+        "category eq 'electronics' or price gt 100",
+        "((category eq 'electronics') or (price gt 100))")]
+    [InlineData(
+        "category in ['electronics', 1, [2,3,true]]",
+        "(category in ['electronics', 1, [2, 3, true]])")]
+    public void ODataQueryRewriterGeneratesCorrectQuery(string source, string expected)
+    {
+        var rewriter = new ODataQueryRewriter();
+        UriQueryExpressionParser parser = new(100);
+
+        QueryToken expression = parser.ParseFilter(source);
+        expression.Accept(rewriter);
+
         Assert.Equal(expected, rewriter.GetQuery());
     }
 }

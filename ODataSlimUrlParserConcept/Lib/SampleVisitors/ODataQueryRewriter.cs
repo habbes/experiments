@@ -60,7 +60,13 @@ public class ODataQueryRewriter : ISyntacticTreeVisitor<bool>
 
     public bool Visit(InToken tokenIn)
     {
-        throw new NotImplementedException();
+        query.Append('(');
+        tokenIn.Left.Accept(this);
+        query.Append(" in ");
+        tokenIn.Right.Accept(this);
+        query.Append(')');
+
+        return true;
     }
 
     public bool Visit(DottedIdentifierToken tokenIn)
