@@ -137,7 +137,7 @@ public partial class ExpressionParser : IDisposable
         {
             return AddNode(ref nodes, new ExpressionNode(ExpressionNodeKind.False, lexer.CurrentToken.Range));
         }
-        else if (lexer.CurrentToken.Kind == ExpressionTokenKind.OpenBracket)
+        else if (lexer.CurrentToken.Kind == ExpressionTokenKind.OpenParen)
         {
             return ParseArray(ref lexer, ref nodes);
         }
@@ -159,7 +159,7 @@ public partial class ExpressionParser : IDisposable
         int firstChild = -1;
         int lastChild = -1;
 
-        if (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseBracket)
+        if (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseParen)
         {
             firstChild = lastChild = ParseExpressionWithPrecedence(ref lexer, ref nodes, 0);
         }
@@ -169,12 +169,12 @@ public partial class ExpressionParser : IDisposable
         //    throw new Exception("Reached unexpected end of input while parsing array.");
         //}
 
-        while (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseBracket)
+        while (lexer.CurrentToken.Kind != ExpressionTokenKind.CloseParen)
         {
             lastChild = ParseExpressionWithPrecedence(ref lexer, ref nodes, 0);
         }
 
-        // last token was CloseBracket, read to consume the token
+        // last token was CloseParen, read to consume the token
         lexer.Read();
 
         ref var arrayNode = ref nodes[index];

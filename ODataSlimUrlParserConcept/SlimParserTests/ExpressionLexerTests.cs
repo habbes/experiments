@@ -45,7 +45,7 @@ public class ExpressionLexerTests
     public void ParsesArrayExpressionAndEmitsCorrectTokens()
     {
         // We place commas and brackets to ensure they are correctly parsed as parts of strings and not as delimiters.
-        ReadOnlySpan<char> source = "category in ['electronics,,tech', 'books[]', name, 1, false]";
+        ReadOnlySpan<char> source = "category in ('electronics,,tech', 'books()', name, 1, false)";
         ExpressionLexer lexer = new ExpressionLexer(source);
 
         Assert.True(lexer.Read());
@@ -57,8 +57,8 @@ public class ExpressionLexerTests
         Assert.Equal("in", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.OpenParen, lexer.CurrentToken.Kind);
+        Assert.Equal("(", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.StringLiteral, lexer.CurrentToken.Kind);
@@ -66,7 +66,7 @@ public class ExpressionLexerTests
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.StringLiteral, lexer.CurrentToken.Kind);
-        Assert.Equal("books[]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal("books()", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.Identifier, lexer.CurrentToken.Kind);
@@ -81,8 +81,8 @@ public class ExpressionLexerTests
         Assert.Equal("false", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.CloseParen, lexer.CurrentToken.Kind);
+        Assert.Equal(")", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.False(lexer.Read());
     }
@@ -90,17 +90,17 @@ public class ExpressionLexerTests
     [Fact]
     public void ParseNestedArrayExpressionAndEmitCorrectTokens()
     {
-        ReadOnlySpan<char> source = "[[12, 3], 4, [ 5, [6, 8]]]";
+        ReadOnlySpan<char> source = "((12, 3), 4, ( 5, (6, 8)))";
         ExpressionLexer lexer = new ExpressionLexer(source);
 
         // write test
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.OpenParen, lexer.CurrentToken.Kind);
+        Assert.Equal("(", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.OpenParen, lexer.CurrentToken.Kind);
+        Assert.Equal("(", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
@@ -111,24 +111,24 @@ public class ExpressionLexerTests
         Assert.Equal("3", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.CloseParen, lexer.CurrentToken.Kind);
+        Assert.Equal(")", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
         Assert.Equal("4", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.OpenParen, lexer.CurrentToken.Kind);
+        Assert.Equal("(", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
         Assert.Equal("5", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.OpenBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("[", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.OpenParen, lexer.CurrentToken.Kind);
+        Assert.Equal("(", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
         Assert.Equal(ExpressionTokenKind.IntLiteral, lexer.CurrentToken.Kind);
@@ -139,23 +139,23 @@ public class ExpressionLexerTests
         Assert.Equal("8", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.CloseParen, lexer.CurrentToken.Kind);
+        Assert.Equal(")", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.CloseParen, lexer.CurrentToken.Kind);
+        Assert.Equal(")", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.True(lexer.Read());
-        Assert.Equal(ExpressionTokenKind.CloseBracket, lexer.CurrentToken.Kind);
-        Assert.Equal("]", lexer.CurrentToken.Range.GetSpan(source).ToString());
+        Assert.Equal(ExpressionTokenKind.CloseParen, lexer.CurrentToken.Kind);
+        Assert.Equal(")", lexer.CurrentToken.Range.GetSpan(source).ToString());
 
         Assert.False(lexer.Read());
     }
 
     [Theory]
-    [InlineData("[")]
-    [InlineData("[[12, 3], 4, [ 5, [6, 8]]")]
+    [InlineData("(")]
+    [InlineData("((12, 3), 4, ( 5, (6, 8))")]
     public void ThrowsExceptionWhenArrayNotTerminated(string source)
     {
         Exception error = Assert.Throws<Exception>(() =>
@@ -164,12 +164,12 @@ public class ExpressionLexerTests
             while (lexer.Read()) { }
         });
 
-        Assert.Equal("Expected ']' but reached end of input.", error.Message);
+        Assert.Equal("Expected ')' but reached end of input.", error.Message);
     }
 
     [Theory]
-    [InlineData("]", 0)]
-    [InlineData("[[12, 3], 4, [ 5, [6, 8]]]]", 26)]
+    [InlineData(")", 0)]
+    [InlineData("((12, 3), 4, ( 5, (6, 8))))", 26)]
     public void ThrowExceptionWhenArrayClosingBracketIsNotMatched(string source, int errorPosition)
     {
         Exception error = Assert.Throws<Exception>(() =>
@@ -178,12 +178,12 @@ public class ExpressionLexerTests
             while (lexer.Read()) { }
         });
 
-        Assert.Equal($"Unexpected ']' at position {errorPosition}.", error.Message);
+        Assert.Equal($"Unexpected ')' at position {errorPosition}.", error.Message);
     }
 
     [Theory]
-    [InlineData("[,", 1)]
-    [InlineData("[12, ,4]", 5)]
+    [InlineData("(,", 1)]
+    [InlineData("(12, ,4)", 5)]
     public void ThrowsExceptionWhenArrayContainsMisplacedCommas(string source, int errorPosition)
     {
         Exception error = Assert.Throws<Exception>(() =>
@@ -198,13 +198,13 @@ public class ExpressionLexerTests
     [Fact]
     public void ThrowsExceptionWhenArrayClosedAfterComma()
     {
-        string source = "[12, 4,]";
+        string source = "(12, 4,)";
         Exception error = Assert.Throws<Exception>(() =>
         {
             var lexer = new ExpressionLexer(source);
             while (lexer.Read()) { }
         });
 
-        Assert.StartsWith($"Unexpected ']' at position 7", error.Message);
+        Assert.StartsWith($"Unexpected ')' at position 7", error.Message);
     }
 }

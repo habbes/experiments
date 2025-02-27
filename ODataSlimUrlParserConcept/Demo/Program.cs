@@ -21,7 +21,7 @@ var schema = """
                         <PropertyRef Name='id' />
                     </Key>
                     <Property Name='id' Type='Edm.Int32' Nullable='false' />
-                    <Property Name='category' Type='Edm.String' />
+                    <Property Name='category' Type='Edm.Untyped' />
                     <Property Name='price' Type='Edm.Int32' />
                 </EntityType>
                 <EntityContainer Name='container'>
@@ -81,7 +81,7 @@ CollectMemory();
 //var semanticTree = SemanticBinder.Bind(slimQuery, model, model.FindDeclaredType("test.ns.product"));
 
 //filterExpression = "category in ['electronics', 'shoes']";
-relativeUri = "products(1)?$filter=category in ('electronics', 'stationery')";
+relativeUri = "products(1)?$filter=category in ('electronics', ['stationery', 'what'])";
 var odataUrParser = new ODataUriParser(model, new Uri(relativeUri, UriKind.Relative));
 var f = odataUrParser.ParseFilter();
 

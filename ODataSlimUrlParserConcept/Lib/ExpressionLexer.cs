@@ -12,6 +12,10 @@ public ref struct ExpressionLexer
     bool _arraySeparatorExpected = false;
     bool _valueExpected = false;
 
+    private const char OpenParen = '(';
+    private const char CloseParen = ')';
+    private const char SingleQuote = '\'';
+
     public ExpressionLexer(ReadOnlySpan<char> source)
     {
         _source = source;
@@ -25,7 +29,7 @@ public ref struct ExpressionLexer
         {
             if (_arrayDepth > 0)
             {
-                throw new Exception("Expected ']' but reached end of input.");
+                throw new Exception("Expected ')' but reached end of input.");
             }
 
             return false;
@@ -39,7 +43,7 @@ public ref struct ExpressionLexer
         if (_arraySeparatorExpected)
         {
             // Array can be closed where a separator is expected;
-            if (_source[_pos] == ']')
+            if (_source[_pos] == CloseParen)
             {
                 this.ReadArrayEnd();
                 return true;
@@ -49,7 +53,7 @@ public ref struct ExpressionLexer
             this.SkipOverWhitespace();
         }
 
-        if (_source[_pos] == '\'')
+        if (_source[_pos] == SingleQuote)
         {
             this.ReadString();
             return true;
@@ -68,7 +72,7 @@ public ref struct ExpressionLexer
         }
 
        
-        if (_source[_pos] == '[')
+        if (_source[_pos] == OpenParen)
         {
             // OData advances through the text until it finds a matching close ']'
             // I think that's inefficient as it leads to multiple passes through the text.
@@ -86,7 +90,7 @@ public ref struct ExpressionLexer
             return true;
         }
 
-        if (_source[_pos] == ']')
+        if (_source[_pos] == CloseParen)
         {
             this.ReadArrayEnd();
             return true;
@@ -122,7 +126,7 @@ public ref struct ExpressionLexer
         OnReadingValue();
         int start = ++_pos; // skip opening quote
         // Naive string, assume no escaping
-        while (_pos < _source.Length && _source[_pos] != '\'')
+        while (_pos < _source.Length && _source[_pos] != SingleQuote)
         {
             _pos++;
         }
@@ -202,10 +206,10 @@ public ref struct ExpressionLexer
 
     private void ReadArrayStart()
     {
-        // Caller ensures that the current char is '['
+        // Caller ensures that the current char is '('
         _token = new Token()
         {
-            Kind = ExpressionTokenKind.OpenBracket,
+            Kind = ExpressionTokenKind.OpenParen,
             Range = new ValueRange(_pos, 1)
         };
 
@@ -219,12 +223,12 @@ public ref struct ExpressionLexer
         // Check if we're in an array
         if (_arrayDepth <= 0 || _valueExpected)
         {
-            throw new Exception($"Unexpected ']' at position {_pos}.");
+            throw new Exception($"Unexpected '{CloseParen}' at position {_pos}.");
         }
 
         _token = new Token()
         {
-            Kind = ExpressionTokenKind.CloseBracket,
+            Kind = ExpressionTokenKind.CloseParen,
             Range = new ValueRange(_pos, 1)
         };
 
@@ -248,7 +252,7 @@ public ref struct ExpressionLexer
     /// <exception cref="Exception"></exception>
     private void CheckAndConsumeComma()
     {
-        if (_arrayDepth == 0 || _token.Kind == ExpressionTokenKind.OpenBracket)
+        if (_arrayDepth == 0 || _token.Kind == ExpressionTokenKind.OpenParen)
         {
             throw new Exception($"Unexpected ',' at position {_pos}.");
         }

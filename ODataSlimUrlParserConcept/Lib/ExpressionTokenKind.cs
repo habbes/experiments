@@ -11,11 +11,11 @@ public enum ExpressionTokenKind
     TrueLiteral,
     FalseLiteral,
     /// <summary>
-    /// The token '[' used to open an array.
+    /// The token '(' used to open an array.
     /// </summary>
-    OpenBracket,
+    OpenParen,
     /// <summary>
-    /// The token ']' used to close an array.
+    /// The token ')' used to close an array.
     /// </summary>
-    CloseBracket,
+    CloseParen,
 }
