@@ -158,6 +158,8 @@ or if we expect multiple passes, we create an expression tree with all the nodes
 TODO:
 
 - Add support for in operator and array expressions
+  - Correct current implement: Array delimeters should be `()` not `[]` 
+- Add support for any operator and property access segment operator
 - Add support for parenthesized nested expressions
 - Support other query options:
   - Select with nesting supported
@@ -170,6 +172,8 @@ TODO:
 - optional: support for arithmetic operators
 - optional: support for other data types
 
-## Checkpoint 5: More performance optimizations
+## Checkpoint 5: How would this look like in AspNetCoreOData?
+
+## Checkpoint 6: More performance optimizations
 
 Perf optimizations after demonstrating support for key scenarios and functionality. Feel free to go wild.
