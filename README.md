@@ -12,3 +12,4 @@
 - [OData schema change analyzer](./ODataModelChangeAnalyzer/)
 - [OData Lightweight URI parser](./ODataSlimUrlParserConcept/)
 - [.NET performance analysis intro](./DotNetPerfAnalysisIntro/)
+- [Array enumeration devirtualization in .NET 10](./ArrayDevirtInDotNet10/)
