@@ -57,31 +57,32 @@ var uri = new Uri("http://service/products(1)?filter=category in ('stationery', 
 //Console.ReadLine();
 
 UriQueryExpressionParser queryExpressionParser = new(100);
-filterExpression = "category in ['electronics']";
+filterExpression = "category in ('electronics', 'tech')";
 QueryToken filterToken = queryExpressionParser.ParseFilter(filterExpression);
 
 //Console.ReadLine();
 ////Console.WriteLine(filterToken.Kind);
 //Console.ReadLine();
 CollectMemory();
-SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+//SlimQueryNode slimQuery = ExpressionParser.Parse(filterExpression.AsMemory());
+////Console.ReadLine();
+////CollectMemory();
+
+//var odataTranslator = new ODataQueryRewriter();
+//filterToken.Accept(odataTranslator);
+//Console.WriteLine($"Query generated with OData translater: {odataTranslator.GetQuery()}");
 //Console.ReadLine();
-//CollectMemory();
 
-var odataTranslator = new ODataQueryRewriter();
-filterToken.Accept(odataTranslator);
-Console.WriteLine($"Query generated with OData translater: {odataTranslator.GetQuery()}");
-Console.ReadLine();
+//var slimRewriter = new SlimQueryRewriter();
+//slimQuery.Accept(slimRewriter);
+//Console.WriteLine($"Query generated with OData translater: {slimRewriter.GetQuery()}");
+//Console.ReadLine();
 
-var slimRewriter = new SlimQueryRewriter();
-slimQuery.Accept(slimRewriter);
-Console.WriteLine($"Query generated with OData translater: {slimRewriter.GetQuery()}");
-Console.ReadLine();
-
-var semanticTree = SemanticBinder.Bind(slimQuery, model, model.FindDeclaredType("test.ns.product"));
+//var semanticTree = SemanticBinder.Bind(slimQuery, model, model.FindDeclaredType("test.ns.product"));
 
 //filterExpression = "category in ['electronics', 'shoes']";
-var odataUrParser = new ODataUriParser(model, uri);
+relativeUri = "products(1)?$filter=category in ('electronics', 'stationery')";
+var odataUrParser = new ODataUriParser(model, new Uri(relativeUri, UriKind.Relative));
 var f = odataUrParser.ParseFilter();
 
 //var rewriter = new ODataQueryRewriter();

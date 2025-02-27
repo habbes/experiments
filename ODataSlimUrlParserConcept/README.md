@@ -157,6 +157,15 @@ or if we expect multiple passes, we create an expression tree with all the nodes
 
 TODO:
 
+How OData handles array literal (operand of in operator):
+- Lexer finds matching opening '(' and closing ')' and creates token kind ExpressionTokenKind.ParenthesizedExpression covering the entire range of the expression
+- UriQueryExpressionParser reads in TryParseLiteral and creates the substring and creates a LiteralToken contain the substring
+- FilterBinder performs the semantic binder (attaches model metadata)
+- The InBinder handles the in QueryToken and generates the InNode
+- The InBinder.GetCollectionOperandFromToken() converts the LiteralToken's text into an array using a JSON parser (this code is pretty inefficient, it starts by creating a StringBuilder from the literal text so that it can replace the round parenthesis with square brackets, then calls ToString(), i.e. 2 string allocations, also creates another string builder to normalize a collection of strings into JSON strings, it's also possible for the array to have invalid syntax)
+- But it makes sense to parse the array at this point, because how it parses token depends on the type. It would be hard to disambiguate the Guid and Date literals without knowing the type upfront. Look into it. But if the '-' symbol is not allowed to mean subtraction, then it might be feasible.
+- Actual array parsing code in ODataUriConversionUtils.ConverFromResourceCollectionValue. There is a comment in the code that acknowledges that this is probably not the best way to do it.
+
 - Add support for in operator and array expressions
   - Correct current implement: Array delimeters should be `()` not `[]` 
 - Add support for any operator and property access segment operator
