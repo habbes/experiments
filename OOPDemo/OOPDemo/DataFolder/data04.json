@@ -1,0 +1,32 @@
+﻿[
+  {
+    "itemCode": "301",
+    "name": "Raincoat",
+    "description": "Waterproof raincoat with adjustable hood",
+    "price": 59.99
+  },
+  {
+    "itemCode": "302",
+    "name": "Digital Camera",
+    "description": "Compact digital camera with 20MP sensor",
+    "price": 199.99
+  },
+  {
+    "itemCode": "303",
+    "name": "Wireless Earbuds",
+    "description": "True wireless earbuds with Bluetooth 5.0",
+    "price": 79.99
+  },
+  {
+    "itemCode": "304",
+    "name": "Electric Toothbrush",
+    "description": "Sonic electric toothbrush with multiple modes",
+    "price": 49.99
+  },
+  {
+    "itemCode": "305",
+    "name": "Travel Backpack",
+    "description": "Lightweight travel backpack with USB charging port",
+    "price": 29.99
+  }
+]

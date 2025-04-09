@@ -1,0 +1,32 @@
+﻿[
+  {
+    "itemCode": "201",
+    "name": "Sweater",
+    "description": "Soft knit sweater with ribbed cuffs and hem",
+    "price": 39.99
+  },
+  {
+    "itemCode": "202",
+    "name": "Backpack",
+    "description": "Urban backpack with laptop compartment",
+    "price": 49.99
+  },
+  {
+    "itemCode": "203",
+    "name": "Smartwatch",
+    "description": "Fitness tracker smartwatch with heart rate monitor",
+    "price": 89.99
+  },
+  {
+    "itemCode": "204",
+    "name": "Laptop",
+    "description": "13-inch ultrabook with SSD storage",
+    "price": 799.99
+  },
+  {
+    "itemCode": "205",
+    "name": "Dress Shoes",
+    "description": "Genuine leather dress shoes for formal occasions",
+    "price": 69.99
+  }
+]
