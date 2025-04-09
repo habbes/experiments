@@ -19,13 +19,26 @@ public class DataCollectionBenchmarks
     [Params(
         DataCollectionFactory.ArrayListCollectionName,
         DataCollectionFactory.LinkedListCollectionName,
-        DataCollectionFactory.SortedTreeCollectionName)]
+        DataCollectionFactory.SortedTreeCollectionName,
+        DataCollectionFactory.DictionaryCollectionName,
+        DataCollectionFactory.ArraySegmentsCollectionName)]
     public string collectionType;
 
     public IDataCollection<int> emptyCollection;
     public IDataCollection<int> fullCollection;
 
-    [GlobalSetup]
+    //public DataCollectionBenchmarks()
+    //{
+    //    emptyCollection = DataCollectionFactory.Create<int>(collectionType);
+    //    fullCollection = DataCollectionFactory.Create<int>(collectionType);
+
+    //    for (int i = 0; i < dataSize; i++)
+    //    {
+    //        fullCollection.Add(i);
+    //    }
+    //}
+
+    [IterationSetup]
     public void Setup()
     {
         emptyCollection = DataCollectionFactory.Create<int>(collectionType);
