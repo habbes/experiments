@@ -2,12 +2,13 @@
 using BenchmarkDotNet.Diagnosers;
 using InlineArrayStructDotnet;
 using Microsoft.VSDiagnostics;
+using UnitTests;
 
 namespace InlineArrayStructDotnet;
 
 [MemoryDiagnoser]
-[CPUUsageDiagnoser]
-[ShortRunJob]
+//[CPUUsageDiagnoser]
+//[ShortRunJob]
 public class Benchmarks
 {
     [Params(2, 30)]
@@ -33,6 +34,15 @@ public class Benchmarks
 
     [Benchmark]
     public bool BracketsMatchingWithOptimizedListStack() => BracketsMatcher.AreBracketsBalanced(input, new HybridListCharStack());
+
+    [Benchmark]
+    public bool BracketsMatchingWithArrayStack() => BracketsMatcher.AreBracketsBalanced(input, new HybridArrayCharStack());
+
+    [Benchmark]
+    public bool BracketsMatchingWithPooledArrayStack() => BracketsMatcher.AreBracketsBalanced(input, new HybridPooledArrayCharStack());
+
+    [Benchmark]
+    public bool BracketsMatchingWithMinPooledArrayStack() => BracketsMatcher.AreBracketsBalanced(input, new HybridPooledMinArrayCharStack());
 
     /// <summary>
     /// Helper for creating a string of matched brackets

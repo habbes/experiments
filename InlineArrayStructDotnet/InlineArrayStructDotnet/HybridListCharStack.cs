@@ -38,7 +38,8 @@ public struct HybridListCharStack : ICharStack
             throw new InvalidOperationException();
         }
 
-        if (_overflow != null)
+
+        if (_overflow != null && _count > CharBuffer.Length)
         {
             char value = _overflow[^1];
             _overflow.RemoveAt(_overflow.Count - 1);
