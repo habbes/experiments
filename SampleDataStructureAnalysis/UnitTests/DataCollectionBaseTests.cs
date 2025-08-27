@@ -26,6 +26,26 @@ public abstract class DataCollectionBaseTests
         Assert.Equal(3, collection.GetLength());
     }
 
+    [Fact]
+    public void AddAndRetrieveManyItems()
+    {
+        var collection = DataCollectionFactory.Create<int>(collectionType);
+
+        int size = 1000_000;
+
+        for (int i = 0; i < size; i++)
+        {
+            collection.Add(i);
+        }
+
+        for (int i = 0; i < size; i++)
+        {
+            Assert.Equal(i, collection.GetItem(i));
+        }
+
+        Assert.Equal(size, collection.GetLength());
+    }
+
     protected IDataCollection<T> CreateCollection<T>()
     {
         return DataCollectionFactory.Create<T>(collectionType);
